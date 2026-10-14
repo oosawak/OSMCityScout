@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#101927">
-  <title>街並みスケッチ 3D v0.9.0 | 山形駅西口</title>
+  <title>街並みスケッチ 3D v0.9.2 | 山形駅西口</title>
   <meta name="description" content="OpenStreetMapの建物・道路をブラウザで3D化。山形駅西口から街並みの線画、マンガ調の背景画像やGLBを作成できます。">
   <style>
     :root { color-scheme: dark; --bg:#0b111b; --panel:#111c2b; --panel2:#182638; --line:#2b3c51; --text:#edf3fc; --muted:#9bacbf; --accent:#71e0bc; --cyan:#82c9f7; --orange:#ffc875; }
@@ -131,6 +131,56 @@
     .fps-radar-dot{width:7px;height:7px;border-radius:50%;display:inline-block;background:#b93c50;margin-right:4px}
     @media(max-width:600px){#fpsRadar{left:7px;bottom:7px;width:min(174px,44vw);padding:6px}.fps-right-stack{width:min(196px,53%);gap:5px}.fps-right-stack .fps-help{font-size:9px;padding:6px 7px;line-height:1.35}.fps-help-title{font-size:9px;margin-bottom:3px}.fps-help kbd{font-size:9px}.fps-right-stack .fps-score b{font-size:17px}.fps-radar-title{font-size:9px}}
     @media(max-width:600px){.fps-help{font-size:9px}.fps-score{gap:8px}.fps-top,.fps-bottom{left:7px;right:7px}.fps-panel{padding:7px;min-width:0}.fps-weapon b{font-size:17px}}
+
+    /* Smartphone FPS: the play field occupies the entire viewport, with all inputs low on screen. */
+    .app.fps.touch-game{display:block;height:100dvh;overflow:hidden}
+    .app.fps.touch-game header{display:none}
+    .app.fps.touch-game .viewer{display:block;height:100dvh;min-height:0;min-width:0;touch-action:none}
+    .app.fps.touch-game #fpsHud{touch-action:none}
+    #fpsTouchControls{display:none;position:absolute;inset:0;z-index:7;pointer-events:none;user-select:none;-webkit-user-select:none;touch-action:none}
+    .app.fps.touch-game #fpsTouchControls{display:block}
+    .app.fps.touch-game .fps-right-stack .fps-help{display:none}
+    .app.fps.touch-game .fps-top{top:max(8px,env(safe-area-inset-top));left:8px;right:8px;gap:5px}
+    .app.fps.touch-game .fps-panel{padding:6px 8px;min-width:0}
+    .app.fps.touch-game .fps-caption{font-size:9px;letter-spacing:0}
+    .app.fps.touch-game .fps-hp{font-size:16px;margin-top:3px}
+    .app.fps.touch-game .fps-health{width:112px;height:4px;margin-top:4px}
+    .app.fps.touch-game .fps-right-stack{width:auto;max-width:47%;gap:4px}
+    .app.fps.touch-game .fps-score{gap:10px;font-size:9px}
+    .app.fps.touch-game .fps-score b{font-size:16px;margin-top:2px}
+    .app.fps.touch-game #fpsRadar{left:8px;top:calc(max(8px,env(safe-area-inset-top)) + 59px);bottom:auto;width:clamp(102px,27vw,134px);padding:5px}
+    .app.fps.touch-game .fps-radar-title{font-size:8px;margin-bottom:3px}
+    .app.fps.touch-game .fps-radar-meta{font-size:8px;margin-top:3px}
+    .app.fps.touch-game .fps-bottom{bottom:calc(162px + env(safe-area-inset-bottom));right:8px;left:auto}
+    .app.fps.touch-game .fps-weapon{padding:4px 8px;text-align:right}
+    .app.fps.touch-game .fps-weapon small{font-size:8px;letter-spacing:0}
+    .app.fps.touch-game .fps-weapon b{font-size:15px;margin:2px 0}
+    .app.fps.touch-game #fpsNotice{top:26%;font-size:clamp(12px,3.5vw,20px)}
+    .fps-touch-stick{position:absolute;left:max(10px,env(safe-area-inset-left));bottom:calc(12px + env(safe-area-inset-bottom));width:clamp(112px,30vw,154px);height:clamp(112px,30vw,154px);border:2px solid #194d9b88;background:#f7f3e75c;border-radius:50%;pointer-events:auto;touch-action:none;display:grid;place-items:center}
+    .fps-touch-stick::before{content:"MOVE";position:absolute;top:10px;left:0;right:0;text-align:center;font-size:10px;font-weight:800;letter-spacing:.14em;color:#194d9b99}
+    .fps-touch-knob{height:43%;width:43%;border-radius:50%;background:#194d9bcf;border:2px solid #f7f3e7;box-shadow:0 3px 8px #194d9b4a;transform:translate(0,0);pointer-events:none;will-change:transform}
+    .fps-touch-buttons{position:absolute;right:max(8px,env(safe-area-inset-right));bottom:calc(10px + env(safe-area-inset-bottom));width:clamp(182px,48vw,262px);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(3,46px);gap:5px;grid-template-areas:"grapple jump fire" "slide dash fire" "reload reload fire";pointer-events:none;touch-action:none}
+    .fps-touch-buttons button,.fps-touch-pause{pointer-events:auto;touch-action:none;color:#fff;background:#194d9be8;border:2px solid #f7f3e7ad;box-shadow:3px 4px 0 #194d9b55;border-radius:11px;padding:3px;font-size:clamp(9px,2.5vw,13px);font-weight:800;letter-spacing:0;text-align:center;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+    .fps-touch-buttons button.pressed{background:#4d9e9a;border-color:#ffffff;transform:translateY(2px);box-shadow:1px 2px 0 #194d9b55}
+    .fps-touch-fire{grid-area:fire;background:#c34d5be8!important;font-size:clamp(13px,3.2vw,17px)!important}
+    .fps-touch-jump{grid-area:jump}.fps-touch-grapple{grid-area:grapple}.fps-touch-dash{grid-area:dash}.fps-touch-slide{grid-area:slide}.fps-touch-reload{grid-area:reload}
+    .fps-touch-pause{position:absolute;right:max(8px,env(safe-area-inset-right));top:calc(max(8px,env(safe-area-inset-top)) + 53px);font-size:10px;border-radius:7px;padding:6px 10px;background:#f7f3e7e8;color:#194d9b;border-color:#194d9b88}
+    .app.fps.touch-game .fps-menu-card .fps-menu-controls{display:none}
+    .fps-touch-menu-help{display:none!important}
+    .app.fps.touch-game .fps-touch-menu-help{display:block!important}
+    .app.fps.touch-game #fpsMenu{padding:13px;touch-action:pan-y}
+    .app.fps.touch-game .fps-menu-card{max-height:calc(100dvh - 28px);padding:clamp(14px,3vw,24px);transform:rotate(-.5deg)}
+    .app.fps.touch-game .fps-menu-card h2.fps-game-title{font-size:clamp(28px,7.5vw,45px);margin:7px 0}
+    .app.fps.touch-game .fps-menu-card p{font-size:12px;margin:8px 0}
+    .app.fps.touch-game .fps-menu-actions button{font-size:12px;padding:9px}
+    @media (max-height:480px){
+      .app.fps.touch-game #fpsRadar{top:59px;width:89px;padding:3px}
+      .app.fps.touch-game .fps-radar-title,.app.fps.touch-game .fps-radar-meta{font-size:7px}
+      .app.fps.touch-game .fps-bottom{bottom:138px}
+      .app.fps.touch-game .fps-touch-stick{width:100px;height:100px;bottom:calc(5px + env(safe-area-inset-bottom))}
+      .app.fps.touch-game .fps-touch-buttons{width:236px;grid-template-rows:repeat(3,37px);gap:3px;bottom:calc(4px + env(safe-area-inset-bottom))}
+      .app.fps.touch-game .fps-touch-pause{top:7px;left:50%;right:auto;transform:translateX(-50%)}
+    }
   </style>
   <script type="importmap">
     {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.168.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.168.0/examples/jsm/"}}
@@ -140,7 +190,7 @@
 <div class="app">
   <header>
     <div class="logo">▥</div>
-    <div class="brand"><strong>街並みスケッチ 3D <small style="color:var(--accent);font-size:10px">v0.9.0</small></strong><span>OSM CITY SCOUT · 地図から街とゲームを生成</span></div>
+    <div class="brand"><strong>街並みスケッチ 3D <small style="color:var(--accent);font-size:10px">v0.9.2</small></strong><span>OSM CITY SCOUT · 地図から街とゲームを生成</span></div>
     <div class="header-tools"><span class="pill" id="loadstate">地図データを準備中</span><button class="primary small" id="gameBtn" disabled>▶ INKBOUND FPS</button><button class="small" id="resetPlace">↺ 西口に戻す</button></div>
   </header>
   <main class="viewer" id="viewer">
@@ -162,8 +212,20 @@
       <div id="fpsNotice" role="status" aria-live="polite"></div><div id="fpsReticle">+</div><div id="fpsHit">×</div><div id="fpsHurt"></div>
       <div id="fpsRadar" aria-label="INKBOUND ミニマップ。建物、道路、自分と敵の位置"><div class="fps-radar-title"><span>CITY RADAR</span><span>N ↑</span></div><canvas id="fpsRadarCanvas" width="400" height="400" aria-label="建物と道路・敵の位置を示すミニマップ"></canvas><div class="fps-radar-meta"><span><span class="fps-radar-dot"></span>敵 <b id="fpsRadarEnemies">0</b></span><span>±<span id="fpsRadarRange">95</span>m</span></div></div>
       <div class="fps-bottom"><div class="fps-panel fps-weapon"><small>INK RIFLE / AUTO</small><b id="fpsAmmo">30 / ∞</b><small id="fpsAbility">AIR DASH READY</small></div></div>
+      <div id="fpsTouchControls" aria-label="INKBOUND スマートフォン用ゲームコントローラー">
+        <button class="fps-touch-pause" id="fpsTouchPause" aria-label="ゲームを一時停止">Ⅱ PAUSE</button>
+        <div id="fpsTouchStick" class="fps-touch-stick" role="group" aria-label="移動用アナログスティック"><div id="fpsTouchKnob" class="fps-touch-knob"></div></div>
+        <div class="fps-touch-buttons" aria-label="アクション操作">
+          <button class="fps-touch-grapple" data-touch-action="KeyE">つかむ</button>
+          <button class="fps-touch-jump" data-touch-action="Space">ジャンプ</button>
+          <button class="fps-touch-fire" data-touch-action="Fire">射撃</button>
+          <button class="fps-touch-slide" data-touch-action="ControlLeft">スライド</button>
+          <button class="fps-touch-dash" data-touch-action="ShiftLeft">ダッシュ</button>
+          <button class="fps-touch-reload" data-touch-action="KeyR">リロード</button>
+        </div>
+      </div>
     </div>
-    <div id="fpsMenu" hidden><div class="fps-menu-card"><div class="fps-caption">FIELD NOTES / REAL CITY</div><h2 class="fps-game-title"><span class="fps-logo">INKBOUND</span><span class="fps-subtitle">ROOFTOP RUN</span><span class="fps-place" id="fpsPlaceTitle">山形駅西口</span></h2><p id="fpsIntro">山形駅西口の街を戦場に、追跡ドローンと戦おう。木は敵弾を防ぎ、弾が当たると木も弾も消えます。建物の高さ・屋上にはOSM情報に基づく推定を含みます。</p><p class="fps-menu-controls">WASD: 移動　/　SPACE: ジャンプ<br>左クリック: 射撃　/　E: 建物にグラップル<br>SHIFT: ダッシュ　/　R: リロード　/　ESC: ポーズ</p><div class="fps-menu-actions"><button class="primary" id="fpsResume">▶ 戦闘開始</button><button id="fpsExit">地図モードに戻る</button><button id="fpsCopyLink">🔗 FPS短縮URLをコピー</button></div><p id="fpsMsg" class="help">PC用キーボード・マウス操作。ゲームは読み込んだ地図範囲内で動作します。</p></div></div>
+    <div id="fpsMenu" hidden><div class="fps-menu-card"><div class="fps-caption">FIELD NOTES / REAL CITY</div><h2 class="fps-game-title"><span class="fps-logo">INKBOUND</span><span class="fps-subtitle">ROOFTOP RUN</span><span class="fps-place" id="fpsPlaceTitle">山形駅西口</span></h2><p id="fpsIntro">山形駅西口の街を戦場に、追跡ドローンと戦おう。木は敵弾を防ぎ、弾が当たると木も弾も消えます。建物の高さ・屋上にはOSM情報に基づく推定を含みます。</p><p class="fps-menu-controls">WASD: 移動　/　SPACE: ジャンプ<br>左クリック: 射撃　/　E: 建物にグラップル<br>SHIFT: ダッシュ　/　R: リロード　/　ESC: ポーズ</p><p class="fps-touch-menu-help">左下のスティックで移動。右側をスワイプして視点変更。右下の射撃・ジャンプ・ダッシュなどで操作します。上の「Ⅱ PAUSE」で一時停止できます。</p><div class="fps-menu-actions"><button class="primary" id="fpsResume">▶ 戦闘開始</button><button id="fpsExit">地図モードに戻る</button><button id="fpsCopyLink">🔗 FPS短縮URLをコピー</button></div><p id="fpsMsg" class="help">PC用キーボード・マウス操作。ゲームは読み込んだ地図範囲内で動作します。</p></div></div>
   </main>
   <aside>
     <section>
@@ -204,8 +266,10 @@
         <p id="buildingSaveStatus" class="help" aria-live="polite">正面・側面・背面の写真を1枚ずつ登録できます。</p>
         <div class="photo-model-panel">
           <strong>写真から建物の外形を生成（試作）</strong>
-          <p class="help">登録した正面写真を解析し、空との境界から屋上の輪郭を推定して立体化します。地面の輪郭・奥行きはOSMで補完します。空が写っていない写真は検出できない場合があります。</p>
+          <p class="help">登録した正面写真から少量の空でも屋上の輪郭を推定します。検出できない場合は「空の位置を指定」で写真の空をクリックしてください。地面の輪郭・奥行きはOSMで補完します。</p>
           <canvas id="photoRoofPreview" width="320" height="83" aria-label="写真から検出した屋上輪郭"></canvas>
+          <button id="pickPhotoSky" type="button" class="small" style="margin:8px 0;display:none">空の位置を指定して再試行</button>
+          <canvas id="photoSkyPicker" width="320" height="220" style="display:none;width:100%;height:auto;border:2px solid var(--cyan);border-radius:8px;cursor:crosshair;touch-action:manipulation" aria-label="登録した写真から空の位置をクリック"></canvas>
           <div class="form-row"><button class="primary" id="generatePhotoShape">写真から3D外形を生成</button><button id="resetPhotoShape">写真由来の外形を解除</button></div>
           <p class="help" id="photoShapeStatus" role="status" aria-live="polite">正面写真を登録すると利用できます。</p>
         </div>
@@ -236,7 +300,7 @@
       <div class="chips" style="margin-top:8px"><button id="copyLink">🔗 短縮URLをコピー</button><button id="copyGameLink">🎮 FPS短縮URL</button><button id="openOsm">↗ OSMで見る</button></div>
       <p class="help">PNGは現在の画面の解像度で保存します。GLBは街並みの3D形状を出力し、BlenderやUnityで利用できます。</p>
     </section>
-    <div class="note">v0.9.0：敵弾がどこにも当たらない場合にnull参照でゲームが停止する不具合を修正。v0.8.1：建物ごとの高さ・階数を入力、保存し、3D形状とFPS衝突判定へ反映。v0.8.0：建物をクリックしてOSMの名称・属性を表示。建物ごとの表示名と正面・側面・背面写真をIndexedDBへ保存（未対応ブラウザでは一時保存）。写真の空と建物の境界から屋上の外形を自動生成する試作を追加。v0.7.5：木にプレイヤー・敵ドローン・敵弾の衝突判定を追加。敵弾が木に当たると木と弾が両方消え、ゲーム再開時と地図に戻る際に植栽を復元します。v0.7.4：元のINKBOUNDに合わせてノート紙カード全体を傾斜、FPS画面の左下にOSM連動ミニマップ、WAVE/SCORE下に操作説明を移動。v0.7.3：INKBOUNDの傾斜ロゴとGitHub Pagesだけで利用できる短縮URL（#g=）を追加。短縮URLには座標・範囲・ゲーム指定を保存し、地名は表示用に逆引きします。v0.7.2：検索した地名を地図取得中・ゲーム開始画面・HUDに反映し、FPS共有URLでも場所を復元。v0.7.1：ドローンの建物壁への衝突判定と迂回・上昇回避、直接FPSを開始する共有URLに対応。v0.7.0：INKBOUND FPS戦闘モードを追加（WASD、射撃、ジャンプ、ダッシュ、グラップリング、ドローンWave制、建物の壁・屋上衝突）。地図表示と切替可能。ゲーム操作はPCブラウザ推奨。v0.6.0までの改善：地上の線路と建物の重なりを判定し、線路部分の建物をくり抜きます。駅舎・上屋は高架状の構造として補完する場合があります。<strong>駅の内部構造・高さは実測ではありません。</strong> 窓台・集合住宅ベランダの立体表現を追加。OSMの単木・並木を取り込み、周辺の公園・歩道沿いの街路樹を推定補完。表示／密度切替と出典数の表示、樹木のインスタンス化で描画負荷を軽減。地図の左右反転を修正。真上表示は北が上・東が右です。道路の見え方を改善し、<strong>車道・歩道・道路輪郭・中央線・横断歩道</strong>を描画します。建物では線画の窓枠、大きな建物の窓・入口・階層線、OSMのbuilding:part・屋根情報を反映します。<strong>窓位置・道路細部・横断歩道の一部は推定</strong>です。現地の実測3Dモデルではありません。</div>
+    <div class="note">v0.9.2：敵弾がどこにも当たらない場合にnull参照でゲームが停止する不具合を修正。v0.8.1：建物ごとの高さ・階数を入力、保存し、3D形状とFPS衝突判定へ反映。v0.8.0：建物をクリックしてOSMの名称・属性を表示。建物ごとの表示名と正面・側面・背面写真をIndexedDBへ保存（未対応ブラウザでは一時保存）。写真の空と建物の境界から屋上の外形を自動生成する試作を追加。v0.7.5：木にプレイヤー・敵ドローン・敵弾の衝突判定を追加。敵弾が木に当たると木と弾が両方消え、ゲーム再開時と地図に戻る際に植栽を復元します。v0.7.4：元のINKBOUNDに合わせてノート紙カード全体を傾斜、FPS画面の左下にOSM連動ミニマップ、WAVE/SCORE下に操作説明を移動。v0.7.3：INKBOUNDの傾斜ロゴとGitHub Pagesだけで利用できる短縮URL（#g=）を追加。短縮URLには座標・範囲・ゲーム指定を保存し、地名は表示用に逆引きします。v0.7.2：検索した地名を地図取得中・ゲーム開始画面・HUDに反映し、FPS共有URLでも場所を復元。v0.7.1：ドローンの建物壁への衝突判定と迂回・上昇回避、直接FPSを開始する共有URLに対応。v0.7.0：INKBOUND FPS戦闘モードを追加（WASD、射撃、ジャンプ、ダッシュ、グラップリング、ドローンWave制、建物の壁・屋上衝突）。地図表示と切替可能。ゲーム操作はPCブラウザ推奨。v0.6.0までの改善：地上の線路と建物の重なりを判定し、線路部分の建物をくり抜きます。駅舎・上屋は高架状の構造として補完する場合があります。<strong>駅の内部構造・高さは実測ではありません。</strong> 窓台・集合住宅ベランダの立体表現を追加。OSMの単木・並木を取り込み、周辺の公園・歩道沿いの街路樹を推定補完。表示／密度切替と出典数の表示、樹木のインスタンス化で描画負荷を軽減。地図の左右反転を修正。真上表示は北が上・東が右です。道路の見え方を改善し、<strong>車道・歩道・道路輪郭・中央線・横断歩道</strong>を描画します。建物では線画の窓枠、大きな建物の窓・入口・階層線、OSMのbuilding:part・屋根情報を反映します。<strong>窓位置・道路細部・横断歩道の一部は推定</strong>です。現地の実測3Dモデルではありません。</div>
     <div class="footer">地図データ © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a> (ODbL)<br>3Dエンジン: three.js (MIT)／建物・道路: Overpass API<br>地名検索: Nominatim（公開APIの利用制限に従います）<br>単一HTML。初回の3Dライブラリ取得と地図データ取得にはインターネット接続が必要です。公開APIは混雑・通信制限で失敗する場合があります。</div>
   </aside>
 </div>
@@ -1162,7 +1226,7 @@ function syncPlaceLabels(){
  $('fpsPlaceTitle').textContent=name;
  $('fpsHudPlace').textContent=`INKBOUND / ${name}`;
  $('fpsIntro').textContent=`${name}の街を戦場に、追跡ドローンと戦おう。木は敵弾を防ぎ、弾が当たると木も弾も消えます。建物の高さ・屋上にはOSM情報に基づく推定を含みます。`;
- document.title=`${game.active?'INKBOUND':'街並みスケッチ 3D v0.9.0'} | ${name}`;
+ document.title=`${game.active?'INKBOUND':'街並みスケッチ 3D v0.9.2'} | ${name}`;
 }
 function updatePlaceUI(){
  $('lat').value=state.lat;$('lon').value=state.lon;$('radius').value=state.radius;
@@ -1444,58 +1508,122 @@ async function selectBuilding(id,clientX,clientY,scrollToInspector=true){
  await renderBuildingPhotos(String(id),epoch);
  const db=await openBuildingDB();if(chosenBuildingEpoch===epoch&&!db)setBuildingSaveStatus('この環境では永続保存を利用できないため、このページを開いている間だけ保持されます。');
 }
-// Analyze the sky/building boundary in a front-facing photograph. Refuse ambiguous images.
-function extractSkylineFromPixels(bytes,width,height){
+// Infer a rooftop boundary from patches of sky that touch the top of a photograph.
+// Sky does NOT need to cover both top corners. A tiny visible patch gets a low-confidence,
+// conservative flat profile instead of inventing a complete roof from a narrow crop.
+// skyPoint is an optional normalized [x,y] hint used only if automatic detection struggles.
+function extractSkylineFromPixels(bytes,width,height,skyPoint=null){
  const index=(x,y)=>4*(Math.max(0,Math.min(height-1,Math.round(y)))*width+Math.max(0,Math.min(width-1,Math.round(x))));
  const at=(x,y)=>{const i=index(x,y);return [bytes[i],bytes[i+1],bytes[i+2]]};
- const average=(x,y)=>{
-  let sum=[0,0,0],n=0;
-  for(let dx=-3;dx<=3;dx+=2)for(let dy=-3;dy<=3;dy+=2){const rgb=at(x+dx,y+dy);sum=sum.map((v,i)=>v+rgb[i]);n++}
+ const diff=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1],a[2]-b[2]);
+ const average=(x,y,r=2)=>{const sum=[0,0,0];let n=0;
+  for(let dy=-r;dy<=r;dy+=2)for(let dx=-r;dx<=r;dx+=2){const rgb=at(x+dx,y+dy);for(let k=0;k<3;k++)sum[k]+=rgb[k];n++}
   return sum.map(v=>v/n);
  };
- const skyA=average(width*.06,height*.045),skyB=average(width*.94,height*.045);
- const diff=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1],a[2]-b[2]);
- if(diff(skyA,skyB)>68)throw new Error('空の色を確認できません。建物全体と空が写った写真を使ってください。');
- const sky=skyA.map((v,i)=>(v+skyB[i])/2);
- if((sky[0]+sky[1]+sky[2])/3<88)throw new Error('上部に明るい空が写る写真を登録してください。');
- const skyLike=rgb=>diff(rgb,sky)<59;
- let topSky=0;
- for(let i=0;i<30;i++)if(skyLike(at(width*(.035+.93*i/29),height*.05)))topSky++;
- if(topSky<19)throw new Error('建物と空の境界が不明瞭です。空が入る正面写真で試してください。');
- const edge=[];
- for(let x=Math.floor(width*.04);x<Math.floor(width*.96);x+=2){
-  let yStart=null,run=0;
-  for(let y=Math.floor(height*.07);y<Math.floor(height*.80);y+=2){
-   if(!skyLike(at(x,y))){run++;if(run>=3){yStart=y-4;break}}else run=0;
+ const isNearTop=skyPoint===null;
+ let sky,seed;
+ if(!isNearTop){
+  if(!Array.isArray(skyPoint)||skyPoint.some(v=>!Number.isFinite(v)||v<0||v>1))throw new Error('空の位置を選び直してください。');
+  seed=[Math.round(skyPoint[0]*(width-1)),Math.round(skyPoint[1]*(height-1))];
+  sky=average(seed[0],seed[1]);
+ }else{
+  // Cluster small strips along the upper border. Previously both upper corners were
+  // unconditionally treated as sky, rejecting photos whose roof reaches one corner.
+  const clusters=[],y=Math.max(1,Math.floor(height*.023)),stride=Math.max(2,Math.round(width/110));
+  for(let x=Math.max(2,stride);x<width-2;x+=stride){
+   const rgb=average(x,y),low=at(x,height*.71),middle=at(x,height*.30);
+   let cluster=clusters.find(c=>diff(c.mean,rgb)<28);
+   if(!cluster){cluster={sum:[0,0,0],n:0,x,y,lower:0,middle:0,mean:rgb};clusters.push(cluster)}
+   cluster.n++;for(let i=0;i<3;i++)cluster.sum[i]+=rgb[i];
+   cluster.mean=cluster.sum.map(v=>v/cluster.n);
+   cluster.lower+=diff(rgb,low);cluster.middle+=diff(rgb,middle);
   }
-  if(yStart!==null&&yStart>height*.09&&yStart<height*.77)edge.push([x,yStart]);
+  if(!clusters.length)throw new Error('写真の上部を読み取れませんでした。');
+  // Blue/cyan open sky ranks above similarly bright building facades. For overcast
+  // grey sky, use difference to the lower wall and size of the top connected region.
+  clusters.sort((a,b)=>{
+   const score=c=>{const [r,g,blue]=c.mean;
+    const cool=Math.max(0,blue-r)*1.0+Math.max(0,blue-g)*.7;
+    const contrast=Math.max(c.lower/c.n,c.middle/c.n);
+    const bright=(r+g+blue)/3;
+    return cool*1.25+Math.min(32,c.n*1.1)+contrast*.42+bright*.045;
+   };return score(b)-score(a);
+  });
+  const best=clusters[0];sky=best.mean;seed=[best.x,y];
  }
- if(edge.length<width*.16)throw new Error('屋上の輪郭が十分に検出できませんでした。建物全体が写った写真を使ってください。');
- // Use the widest contiguous skyline region: avoid unrelated houses at the edges.
+ // Use a flood fill so sky-toned windows elsewhere in the building are never
+ // mistaken for sky. Pixel tolerance is adaptive to the difference from a lower wall.
+ const lower=at(seed[0],Math.min(height-1,Math.round(height*.75)));
+ const wallContrast=diff(lower,sky);
+ const tolerance=Math.max(22,Math.min(61,wallContrast*.67));
+ const region=new Uint8Array(width*height),queue=new Int32Array(width*height);
+ const sx=seed[0],sy=seed[1],id=sy*width+sx;
+ let front=0,back=0,topTouch=0;
+ if(diff(at(sx,sy),sky)>tolerance+4)throw new Error('空の位置をもう一度指定してください。');
+ queue[back++]=id;region[id]=1;
+ while(front<back){
+  const i=queue[front++],x=i%width,y=(i-x)/width;
+  if(y<=Math.max(2,height*.04))topTouch++;
+  for(const j of [x>0?i-1:-1,x<width-1?i+1:-1,y>0?i-width:-1,y<height-1?i+width:-1]){
+   if(j<0||region[j])continue;
+   const off=4*j,pix=[bytes[off],bytes[off+1],bytes[off+2]];
+   if(diff(pix,sky)>tolerance)continue;
+   region[j]=1;queue[back++]=j;
+  }
+ }
+ if(back<Math.max(15,width*height*.0015)||topTouch<4){
+  if(!skyPoint)throw new Error('自動判定では空の領域を確定できません。下の「空の位置を指定」から写真の空をクリックしてください。');
+  throw new Error('指定位置の周辺に空の領域が見つかりません。別の空の部分をクリックしてください。');
+ }
+ const edge=[];
+ for(let x=Math.floor(width*.018);x<width*.982;x+=2){
+  let first=-1;
+  for(let y=0;y<height*.44;y++)if(region[y*width+x]){first=y;break}
+  if(first<0)continue;
+  let run=0,transition=-1;
+  for(let y=first+1;y<height*.86;y++){
+   if(region[y*width+x])run=0;
+   else if(++run>=Math.max(3,Math.round(height*.013))){transition=y-run;break}
+  }
+  if(transition>height*.04&&transition<height*.82)edge.push([x,transition]);
+ }
+ if(edge.length<Math.max(5,width*.017)){
+  if(!skyPoint)throw new Error('屋上との境界を自動判定できません。空の位置を写真上で指定してください。');
+  throw new Error('その部分では屋上との境界を検出できません。建物の輪郭に近い空を指定してください。');
+ }
+ // Keep plausible points in the largest coherent run and skip broken segments
+ // produced by power lines, clouds or similarly-colored facades.
  const groups=[];let group=[];
- for(const item of edge){if(group.length&&item[0]-group[group.length-1][0]>4){groups.push(group);group=[]}group.push(item)}
+ for(const item of edge){if(group.length&&item[0]-group[group.length-1][0]>6){groups.push(group);group=[]}group.push(item)}
  if(group.length)groups.push(group);
  groups.sort((a,b)=>b.length-a.length);
  const samples=groups[0];
- if(samples.length<9||samples[samples.length-1][0]-samples[0][0]<width*.30)throw new Error('建物の横幅が足りません。建物全体が写る写真で試してください。');
- const points=[],count=19;
- for(let i=0;i<count;i++){
-  const x=samples[0][0]+(samples[samples.length-1][0]-samples[0][0])*i/(count-1);
-  const near=samples.filter(p=>Math.abs(p[0]-x)<=Math.max(6,width*.027)).map(p=>p[1]).sort((a,b)=>a-b);
-  points.push(near.length?near[Math.floor(near.length/2)]:samples.reduce((v,p)=>Math.abs(p[0]-x)<Math.abs(v[0]-x)?p:v)[1]);
+ const coverage=(samples[samples.length-1][0]-samples[0][0])/width;
+ if(samples.length<5||coverage<.055)throw new Error('確認できた空が非常に狭いため、屋上外形を推定できません。もう少し輪郭が写った写真を使ってください。');
+ const count=19;
+ let profile=Array(count).fill(1);
+ if(coverage>=.20){
+  const points=[];
+  for(let i=0;i<count;i++){
+   const x=samples[0][0]+(samples[samples.length-1][0]-samples[0][0])*i/(count-1);
+   const near=samples.filter(p=>Math.abs(p[0]-x)<=Math.max(5,width*.022)).map(p=>p[1]).sort((a,b)=>a-b);
+   points.push(near.length?near[Math.floor(near.length/2)]:samples.reduce((v,p)=>Math.abs(p[0]-x)<Math.abs(v[0]-x)?p:v)[1]);
+  }
+  const smooth=points.map((_,i)=>{const v=points.slice(Math.max(0,i-1),Math.min(points.length,i+2)).sort((a,b)=>a-b);return v[Math.floor(v.length/2)]});
+  const highest=Math.min(...smooth),lowest=Math.max(...smooth),span=lowest-highest;
+  profile=smooth.map(y=>span<height*.023?1:Math.max(.58,Math.min(1,1-(y-highest)/Math.max(span,1)*.38)));
  }
- // Smooth non-structural speckles without erasing larger roof shapes.
- const smooth=points.map((_,i)=>{const v=points.slice(Math.max(0,i-1),Math.min(points.length,i+2)).sort((a,b)=>a-b);return v[Math.floor(v.length/2)]});
- const highest=Math.min(...smooth),lowest=Math.max(...smooth),span=lowest-highest;
- const profile=smooth.map(y=>span<height*.023?1:Math.max(.58,Math.min(1,1-(y-highest)/Math.max(span,1)*.38)));
- // Sample the dominant non-sky wall color from the lower central region of the image.
+ // Choose a lower non-sky façade color (never the inferred sky tone).
  let col=[0,0,0],cnt=0;
- for(let y=Math.round(height*.55);y<height*.79;y+=7)for(let x=Math.round(width*.27);x<width*.73;x+=7){const pix=at(x,y);if(!skyLike(pix)){col=col.map((v,k)=>v+pix[k]);cnt++}}
- const c=cnt>4?col.map(v=>Math.round(v/cnt)): [193,199,199];
+ for(let y=Math.round(height*.55);y<height*.81;y+=7)for(let x=Math.round(width*.27);x<width*.73;x+=7){
+  if(region[y*width+x])continue;
+  const pix=at(x,y);col=col.map((v,k)=>v+pix[k]);cnt++;
+ }
+ const c=cnt>4?col.map(v=>Math.round(v/cnt)):[193,199,199];
  const color=((c[0]<<16)|(c[1]<<8)|c[2])>>>0;
- return {version:1,profile,color,confidence:Math.min(.97,.45+Math.min(.4,samples.length/(width*.5))*.5+topSky/150),source:'front',updated:Date.now()};
+ return {version:1,profile,color,confidence:Math.max(.25,Math.min(.94,.24+coverage*.8)),coverage,partial:coverage<.20,source:'front',updated:Date.now()};
 }
-async function analyzePhotoShape(blob){
+async function analyzePhotoShape(blob,skyPoint=null){
  const obj=URL.createObjectURL(blob);
  try{
   const img=await new Promise((resolve,reject)=>{const i=new Image();i.onload=()=>resolve(i);i.onerror=()=>reject(new Error('写真を開けませんでした'));i.src=obj});
@@ -1503,7 +1631,7 @@ async function analyzePhotoShape(blob){
   can.width=Math.max(32,Math.round(img.naturalWidth*ratio));can.height=Math.max(32,Math.round(img.naturalHeight*ratio));
   const ctx=can.getContext('2d',{willReadFrequently:true});ctx.drawImage(img,0,0,can.width,can.height);
   const rgba=ctx.getImageData(0,0,can.width,can.height);
-  return extractSkylineFromPixels(rgba.data,can.width,can.height);
+  return extractSkylineFromPixels(rgba.data,can.width,can.height,skyPoint);
  }finally{URL.revokeObjectURL(obj)}
 }
 function showPhotoRoofPreview(model){
@@ -1521,7 +1649,8 @@ async function refreshPhotoShapeUI(id,epoch){
  const existing=photoGeometryOverrides.get(buildingKey(id));
  if(chosenBuildingId!==id||chosenBuildingEpoch!==epoch)return;
  showPhotoRoofPreview(existing||null);
- $('photoShapeStatus').textContent=existing?'写真由来の外形を3Dに反映中（輪郭は推定値です）。解除でOSMの形状に戻せます。':'正面写真を登録すると、屋上の外形を推定できます。';
+ $('photoShapeStatus').textContent=existing?(existing.partial?'空が少ないため外形は概算です。平坦な屋根として生成しました。':'写真由来の外形を3Dに反映中（輪郭は推定値です）。解除でOSMの形状に戻せます。'):'正面写真を登録すると、屋上の外形を推定できます。';
+ $('pickPhotoSky').style.display='none';$('photoSkyPicker').style.display='none';
 }
 async function fileToJpegBlob(file){
  if(!file.type.startsWith('image/'))throw new Error('画像ファイルを選んでください');
@@ -1580,21 +1709,42 @@ $('resetBuildingDimensions').addEventListener('click',async()=>{
  buildingDimensionOverrides.delete(key);
  await rebuildAfterDimensionsEdit(id,epoch,ok?'高さ・階数を元のOSM値に戻しました。':'OSMの値に一時的に戻しました。永続保存できない可能性があります。');
 });
-$('generatePhotoShape').addEventListener('click',async()=>{
+async function generateBuildingFromPhoto(skyPoint=null){
  if(!chosenBuildingId||!state.data||game.active)return;
  const id=chosenBuildingId,epoch=chosenBuildingEpoch,status=$('photoShapeStatus'),button=$('generatePhotoShape');
  status.textContent='写真から建物の屋上輪郭を解析しています…';button.disabled=true;
  try{
   const key=buildingKey(id),entry=await buildingStorageGet('photos',key+'|front');
   if(!entry?.blob)throw new Error('先に「正面」の写真を登録してください。');
-  const model=await analyzePhotoShape(entry.blob);
+  const model=await analyzePhotoShape(entry.blob,skyPoint);
   if(chosenBuildingId!==id||chosenBuildingEpoch!==epoch)return;
   const ok=await buildingStorageSet('geometry',key,model);
   if(chosenBuildingId!==id||chosenBuildingEpoch!==epoch)return;
   photoGeometryOverrides.set(key,model);
   await rebuildAfterDimensionsEdit(id,epoch,ok?'写真から屋上輪郭を生成し、3DとFPS判定に反映しました。':'写真から外形を一時生成しました。永続保存は利用できない可能性があります。');
- }catch(err){if(chosenBuildingId===id&&chosenBuildingEpoch===epoch)status.textContent='自動生成できませんでした：'+err.message}
+ }catch(err){if(chosenBuildingId===id&&chosenBuildingEpoch===epoch){status.textContent='自動生成できませんでした：'+err.message; $('pickPhotoSky').style.display='inline-block'}}
  finally{button.disabled=false}
+}
+$('generatePhotoShape').addEventListener('click',()=>generateBuildingFromPhoto());
+$('pickPhotoSky').addEventListener('click',async()=>{
+ if(!chosenBuildingId)return;
+ const id=chosenBuildingId,epoch=chosenBuildingEpoch,entry=await buildingStorageGet('photos',buildingKey(chosenBuildingId)+'|front');
+ if(chosenBuildingId!==id||chosenBuildingEpoch!==epoch)return;
+ if(!entry?.blob){$('photoShapeStatus').textContent='先に正面の写真を登録してください。';return}
+ const objectURL=URL.createObjectURL(entry.blob);
+ try{
+  const img=await new Promise((resolve,reject)=>{const picture=new Image();picture.onload=()=>resolve(picture);picture.onerror=()=>reject(new Error('写真を開けませんでした'));picture.src=objectURL});
+  if(chosenBuildingId!==id||chosenBuildingEpoch!==epoch)return;
+  const cvs=$('photoSkyPicker'),scale=Math.min(1,320/img.naturalWidth);cvs.width=Math.round(Math.max(1,img.naturalWidth*scale));cvs.height=Math.round(Math.max(1,img.naturalHeight*scale));
+  cvs.getContext('2d').drawImage(img,0,0,cvs.width,cvs.height);cvs.style.display='block';
+  $('photoShapeStatus').textContent='写真の中の「空」を1か所クリックしてください（屋根や窓ではなく空そのもの）。';
+ }catch(err){$('photoShapeStatus').textContent=err.message}
+ finally{URL.revokeObjectURL(objectURL)}
+});
+$('photoSkyPicker').addEventListener('click',e=>{
+ const rect=e.currentTarget.getBoundingClientRect();if(!rect.width||!rect.height)return;
+ const point=[Math.max(0,Math.min(1,(e.clientX-rect.left)/rect.width)),Math.max(0,Math.min(1,(e.clientY-rect.top)/rect.height))];
+ generateBuildingFromPhoto(point);
 });
 $('resetPhotoShape').addEventListener('click',async()=>{
  if(!chosenBuildingId||!state.data||game.active)return;
@@ -1632,6 +1782,8 @@ $('buildingPhotoInput').addEventListener('change',async e=>{
 });
 
 // INKBOUND FPS integration. Game models live outside cityRoot, so GLB exports remain unchanged.
+const touchGameDevice=window.matchMedia('(pointer:coarse)').matches;
+const touchGame={stickPointer:null,lookPointer:null,lookX:0,lookY:0,moveX:0,moveY:0};
 const game={active:false,locked:false,dead:false,started:false,keys:Object.create(null),fire:false,player:new THREE.Vector3(),vel:new THREE.Vector3(),yaw:0,pitch:0,eye:1.7,grounded:true,airDash:true,dash:0,slide:0,grapple:null,
  hp:100,score:0,wave:0,ammo:30,reloading:0,shotCool:0,muzzleTime:0,hitTime:0,hurtTime:0,noticeTime:0,waveDelay:1.2,time:0,drones:[],bullets:[],effects:[]};
 const gameRoot=new THREE.Group();gameRoot.name='INKBOUND gameplay (not included in GLB export)';scene.add(gameRoot);
@@ -1731,7 +1883,10 @@ function clearGameObjects(){for(const d of game.drones){gameRoot.remove(d.root);
 function gameReset(){restoreGameTrees();clearGameObjects();syncPlaceLabels();game.player.copy(findSafeSpawn());game.vel.set(0,0,0);game.yaw=0;game.pitch=0;game.eye=1.7;game.grounded=true;game.airDash=true;game.dash=0;game.slide=0;game.grapple=null;
  game.hp=100;game.score=0;game.wave=0;game.ammo=30;game.reloading=0;game.shotCool=0;game.hurtTime=0;game.hitTime=0;game.waveDelay=1;game.dead=false;game.started=true;game.time=0;setGameNotice(`${placeName()} · INKBOUND`,2.5);
 }
-function clearKeys(){game.keys=Object.create(null);game.fire=false;game.grapple=null;rope.visible=false}
+function clearKeys(){game.keys=Object.create(null);game.fire=false;game.grapple=null;rope.visible=false;
+ touchGame.moveX=0;touchGame.moveY=0;touchGame.stickPointer=null;touchGame.lookPointer=null;
+ $('fpsTouchKnob').style.transform='translate(0px,0px)';
+ for(const btn of document.querySelectorAll('[data-touch-action]'))btn.classList.remove('pressed');}
 function gameAim(){camera.position.copy(game.player).add(new THREE.Vector3(0,game.eye,0));camera.rotation.order='YXZ';camera.rotation.set(game.pitch,game.yaw,0,'YXZ');camera.updateMatrixWorld(true)}
 function gameModeUrl(){return makeShortUrl(true)}
 function setGameUrlMode(enabled){
@@ -1809,14 +1964,17 @@ function gameEnter(){if(!state.loaded){toast('先に地図を読み込んでく�
  if(game.active)return;
  clearBuildingSelection();
  setGameUrlMode(true);
- controls.enabled=false;game.active=true;game.locked=false;syncPlaceLabels();gameReset();prepareGameRadar();drawGameRadar(true);document.querySelector('.app').classList.add('fps');$('fpsHud').hidden=false;$('fpsMenu').hidden=false;$('fpsResume').textContent='▶ 戦闘開始';syncPlaceLabels();$('fpsMsg').textContent='クリックでマウスを固定します。ESCで一時停止。';gun.visible=true;$('gameBtn').textContent='✕ 地図へ戻る';gameAim();
+ controls.enabled=false;game.active=true;game.locked=false;document.querySelector('.app').classList.toggle('touch-game',touchGameDevice);syncPlaceLabels();gameReset();prepareGameRadar();drawGameRadar(true);document.querySelector('.app').classList.add('fps');$('fpsHud').hidden=false;$('fpsMenu').hidden=false;$('fpsResume').textContent='▶ 戦闘開始';syncPlaceLabels();$('fpsMsg').textContent=touchGameDevice?'戦闘開始をタップしてください。画面右側のスワイプで視点を変えられます。':'クリックでマウスを固定します。ESCで一時停止。';gun.visible=true;$('gameBtn').textContent='✕ 地図へ戻る';gameAim();
 }
-function requestGameLock(){if(!game.active)return;try{const promise=canvas.requestPointerLock();if(promise?.catch)promise.catch(()=>{$('fpsMsg').textContent='マウス固定がブロックされました。Chrome等で開いて再度お試しください。'})}catch(e){$('fpsMsg').textContent='マウス固定に失敗しました：'+e.message}}
-function leaveGame(){if(!game.active)return;setGameUrlMode(false);game.active=false;game.locked=false;clearKeys();clearGameObjects();restoreGameTrees();gun.visible=false;$('gameBtn').textContent='▶ INKBOUND FPS';syncPlaceLabels();$('fpsHud').hidden=true;$('fpsMenu').hidden=true;document.querySelector('.app').classList.remove('fps');controls.enabled=true;camera.rotation.order='XYZ';setCameraView('bird');if(document.pointerLockElement===canvas)document.exitPointerLock();
+function requestGameLock(){if(!game.active)return;
+ if(touchGameDevice){game.locked=true;$('fpsMenu').hidden=true;clearKeys();return}
+ try{const promise=canvas.requestPointerLock();if(promise?.catch)promise.catch(()=>{$('fpsMsg').textContent='マウス固定がブロックされました。Chrome等で開いて再度お試しください。'})}catch(e){$('fpsMsg').textContent='マウス固定に失敗しました：'+e.message}}
+function leaveGame(){if(!game.active)return;setGameUrlMode(false);game.active=false;game.locked=false;clearKeys();clearGameObjects();restoreGameTrees();gun.visible=false;$('gameBtn').textContent='▶ INKBOUND FPS';syncPlaceLabels();$('fpsHud').hidden=true;$('fpsMenu').hidden=true;document.querySelector('.app').classList.remove('fps','touch-game');controls.enabled=true;camera.rotation.order='XYZ';setCameraView('bird');if(document.pointerLockElement===canvas)document.exitPointerLock();
 }
 function gameDirection(){gameForward.set(-Math.sin(game.yaw),0,-Math.cos(game.yaw));gameRight.set(Math.cos(game.yaw),0,-Math.sin(game.yaw));gameWish.set(0,0,0)
- .addScaledVector(gameForward,(game.keys.KeyW?1:0)-(game.keys.KeyS?1:0))
- .addScaledVector(gameRight,(game.keys.KeyD?1:0)-(game.keys.KeyA?1:0));if(gameWish.lengthSq()>0)gameWish.normalize();}
+ .addScaledVector(gameForward,(game.keys.KeyW?1:0)-(game.keys.KeyS?1:0)-touchGame.moveY)
+ .addScaledVector(gameRight,(game.keys.KeyD?1:0)-(game.keys.KeyA?1:0)+touchGame.moveX);
+ if(gameWish.lengthSq()>1)gameWish.normalize();}
 function gameMove(dt){const prevY=game.player.y;game.grounded=false;
  for(const axis of ['x','z']){const amount=game.vel[axis]*dt;if(Math.abs(amount)<1e-8)continue;game.player[axis]+=amount;
   if(insideBuilding(game.player.x,game.player.z,game.player.y)||treeBodyAt(game.player.x,game.player.z,game.player.y)){game.player[axis]-=amount;game.vel[axis]=0}
@@ -1853,7 +2011,7 @@ function spawnDrones(){game.wave++;game.waveDelay=3;const count=Math.min(4+game.
   const drone={root,body,eye,halo,hp:100+game.wave*12,cool:1+Math.random()*1.3,seed:i};body.userData.drone=drone;game.drones.push(drone)
  }setGameNotice('WAVE '+game.wave+' / '+count+' DRONES',2.4)
 }
-function gameDamage(amount){if(game.dead)return;game.hp=Math.max(0,game.hp-amount);game.hurtTime=.38;if(game.hp<=0){game.dead=true;clearKeys();$('fpsIntro').textContent=`GAME OVER · SCORE ${game.score} · WAVE ${game.wave}`;$('fpsResume').textContent='↺ リトライ';$('fpsMsg').textContent='再挑戦するか、地図モードに戻れます。';if(document.pointerLockElement===canvas)document.exitPointerLock();else $('fpsMenu').hidden=false}}
+function gameDamage(amount){if(game.dead)return;game.hp=Math.max(0,game.hp-amount);game.hurtTime=.38;if(game.hp<=0){game.dead=true;game.locked=false;clearKeys();$('fpsIntro').textContent=`GAME OVER · SCORE ${game.score} · WAVE ${game.wave}`;$('fpsResume').textContent='↺ リトライ';$('fpsMsg').textContent='再挑戦するか、地図モードに戻れます。';if(document.pointerLockElement===canvas)document.exitPointerLock();else $('fpsMenu').hidden=false}}
 function destroyTreeFromEnemyShot(tree,hitPoint){
  if(!hideGameTree(tree))return;
  // Brief green ink burst makes it clear the tree absorbed the projectile.
@@ -1981,25 +2139,60 @@ $('fpsExit').addEventListener('click',leaveGame);
 $('fpsCopyLink').addEventListener('click',copyGameModeUrl);
 $('copyGameLink').addEventListener('click',copyGameModeUrl);
 document.addEventListener('pointerlockchange',()=>{
- if(!game.active)return;game.locked=document.pointerLockElement===canvas;$('fpsMenu').hidden=game.locked;
+ if(!game.active||touchGameDevice)return;game.locked=document.pointerLockElement===canvas;$('fpsMenu').hidden=game.locked;
  if(!game.locked){clearKeys();$('fpsResume').textContent=game.dead?'↺ リトライ':'▶ 再開';$('fpsMsg').textContent=game.dead?'リトライできます。':'ESCで一時停止中。再開するとマウスを固定します。'}
 });
 document.addEventListener('pointerlockerror',()=>{if(game.active){$('fpsMsg').textContent='Pointer Lockに失敗。ブラウザの権限を確認してください。';$('fpsMenu').hidden=false}});
 document.addEventListener('mousemove',e=>{if(!game.locked||game.dead)return;game.yaw-=e.movementX*.002;game.pitch=THREE.MathUtils.clamp(game.pitch-e.movementY*.002,-1.48,1.48)});
+function gameActionDown(code){
+ if(code==='Space'&&game.grounded){game.vel.y=9.2;game.grounded=false}
+ if(code==='KeyR')gameReload();
+ if(code.startsWith('Shift')&&!game.grounded&&game.airDash){game.airDash=false;game.dash=.2;gameDirection();if(gameWish.lengthSq()<.1)gameWish.copy(gameForward);game.vel.x=gameWish.x*22;game.vel.z=gameWish.z*22;game.vel.y=Math.max(game.vel.y,1)}
+ if(code.startsWith('Control')&&game.grounded){game.slide=.6;gameDirection();game.vel.x=gameWish.x*14;game.vel.z=gameWish.z*14}
+ if(code==='KeyE'){gameAim();hitRay.setFromCamera(new THREE.Vector2(),camera);hitRay.far=46;const hit=hitRay.intersectObjects(rayEnvironment(),false)[0];if(hit&&hit.point.y>.5){game.grapple=hit.point.clone();game.grapple.y+=.5;game.grounded=false}else setGameNotice('建物を狙ってつかむ / 46m',1.4)}
+}
 document.addEventListener('keydown',e=>{if(!game.active||!game.locked||game.dead)return;
- const codes=['Space','ControlLeft','ControlRight','ShiftLeft','ShiftRight','KeyW','KeyA','KeyS','KeyD','KeyE','KeyR'];if(codes.includes(e.code))e.preventDefault();game.keys[e.code]=true;if(e.repeat)return;
- if(e.code==='Space'&&game.grounded){game.vel.y=9.2;game.grounded=false}
- if(e.code==='KeyR')gameReload();
- if(e.code.startsWith('Shift')&&!game.grounded&&game.airDash){game.airDash=false;game.dash=.2;gameDirection();if(gameWish.lengthSq()<.1)gameWish.copy(gameForward);game.vel.x=gameWish.x*22;game.vel.z=gameWish.z*22;game.vel.y=Math.max(game.vel.y,1)}
- if(e.code.startsWith('Control')&&game.grounded){game.slide=.6;gameDirection();game.vel.x=gameWish.x*14;game.vel.z=gameWish.z*14}
- if(e.code==='KeyE'){gameAim();hitRay.setFromCamera(new THREE.Vector2(),camera);hitRay.far=46;const hit=hitRay.intersectObjects(rayEnvironment(),false)[0];if(hit&&hit.point.y>.5){game.grapple=hit.point.clone();game.grapple.y+=.5;game.grounded=false}else setGameNotice('建物を狙ってEを長押し / 46m',1.4)}
+ const codes=['Space','ControlLeft','ControlRight','ShiftLeft','ShiftRight','KeyW','KeyA','KeyS','KeyD','KeyE','KeyR'];if(codes.includes(e.code))e.preventDefault();game.keys[e.code]=true;if(e.repeat)return;gameActionDown(e.code);
 });
 document.addEventListener('keyup',e=>{game.keys[e.code]=false;if(e.code==='KeyE')game.grapple=null});
+function pauseTouchGame(){if(!touchGameDevice||!game.active||!game.locked)return;
+ game.locked=false;clearKeys();$('fpsMenu').hidden=false;
+ $('fpsResume').textContent=game.dead?'↺ リトライ':'▶ 再開';
+ $('fpsMsg').textContent='一時停止中。再開をタップするとゲームに戻ります。';}
+$('fpsTouchPause').addEventListener('click',pauseTouchGame);
+const stick=$('fpsTouchStick'),knob=$('fpsTouchKnob');
+function updateStick(e){const box=stick.getBoundingClientRect(),cx=box.left+box.width/2,cy=box.top+box.height/2;
+ const max=box.width*.33,dx=e.clientX-cx,dy=e.clientY-cy,dist=Math.hypot(dx,dy),ratio=dist>max?max/dist:1;
+ const x=dx*ratio,y=dy*ratio;touchGame.moveX=x/max;touchGame.moveY=y/max;knob.style.transform=`translate(${x}px,${y}px)`;}
+function releaseStick(e){if(touchGame.stickPointer!==e.pointerId)return;touchGame.stickPointer=null;touchGame.moveX=touchGame.moveY=0;knob.style.transform='translate(0px,0px)';}
+stick.addEventListener('pointerdown',e=>{if(!game.active||!game.locked||game.dead||touchGame.stickPointer!==null)return;
+ e.preventDefault();touchGame.stickPointer=e.pointerId;stick.setPointerCapture(e.pointerId);updateStick(e);});
+stick.addEventListener('pointermove',e=>{if(touchGame.stickPointer===e.pointerId){e.preventDefault();updateStick(e);}});
+for(const name of ['pointerup','pointercancel','lostpointercapture'])stick.addEventListener(name,releaseStick);
+for(const button of document.querySelectorAll('[data-touch-action]')){
+ let pressedPointer=null;const code=button.dataset.touchAction;
+ button.addEventListener('pointerdown',e=>{if(!game.active||!game.locked||game.dead||pressedPointer!==null)return;
+  e.preventDefault();pressedPointer=e.pointerId;button.setPointerCapture(e.pointerId);button.classList.add('pressed');
+  if(code==='Fire')game.fire=true;else{game.keys[code]=true;gameActionDown(code)}
+ });
+ const stop=e=>{if(pressedPointer!==e.pointerId)return;pressedPointer=null;button.classList.remove('pressed');
+  if(code==='Fire')game.fire=false;else{game.keys[code]=false;if(code==='KeyE')game.grapple=null}
+ };
+ for(const name of ['pointerup','pointercancel','lostpointercapture'])button.addEventListener(name,stop);
+}
+canvas.addEventListener('pointerdown',e=>{if(!touchGameDevice||!game.active||!game.locked||game.dead||e.pointerType==='mouse'||touchGame.lookPointer!==null)return;
+ e.preventDefault();touchGame.lookPointer=e.pointerId;touchGame.lookX=e.clientX;touchGame.lookY=e.clientY;canvas.setPointerCapture(e.pointerId);});
+canvas.addEventListener('pointermove',e=>{if(touchGame.lookPointer!==e.pointerId||!game.locked)return;
+ e.preventDefault();const dx=e.clientX-touchGame.lookX,dy=e.clientY-touchGame.lookY;touchGame.lookX=e.clientX;touchGame.lookY=e.clientY;
+ game.yaw-=dx*.0045;game.pitch=THREE.MathUtils.clamp(game.pitch-dy*.0045,-1.48,1.48);});
+const endLook=e=>{if(touchGame.lookPointer===e.pointerId)touchGame.lookPointer=null};
+for(const name of ['pointerup','pointercancel','lostpointercapture'])canvas.addEventListener(name,endLook);
+
 canvas.addEventListener('mousedown',e=>{if(game.locked&&e.button===0)game.fire=true});
 document.addEventListener('mouseup',e=>{if(e.button===0)game.fire=false});
 canvas.addEventListener('contextmenu',e=>{if(game.active)e.preventDefault()});
-window.addEventListener('blur',()=>{if(game.active&&game.locked)document.exitPointerLock();clearKeys()});
-document.addEventListener('visibilitychange',()=>{if(document.hidden&&game.active&&game.locked)document.exitPointerLock()});
+window.addEventListener('blur',()=>{if(touchGameDevice)pauseTouchGame();else if(game.active&&game.locked)document.exitPointerLock();clearKeys()});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){if(touchGameDevice)pauseTouchGame();else if(game.active&&game.locked)document.exitPointerLock()}});
 
 $('osmServer').addEventListener('change',()=>{$('networkInfo').textContent='取得先を切り替えました。「この範囲を生成」で再試行できます';});
 for(const id of ['detailLevel','generateVegetation','treeDensity','avoidRailCollision'])$(id).addEventListener('change',()=>{if(state.data){setStatus('外観を再生成中');buildWorld(state.data,true);setStatus('読み込み完了')}});
