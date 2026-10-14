@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#101927">
-  <title>街並みスケッチ 3D v0.7.5 | 山形駅西口</title>
+  <title>街並みスケッチ 3D v0.8.0 | 山形駅西口</title>
   <meta name="description" content="OpenStreetMapの建物・道路をブラウザで3D化。山形駅西口から街並みの線画、マンガ調の背景画像やGLBを作成できます。">
   <style>
     :root { color-scheme: dark; --bg:#0b111b; --panel:#111c2b; --panel2:#182638; --line:#2b3c51; --text:#edf3fc; --muted:#9bacbf; --accent:#71e0bc; --cyan:#82c9f7; --orange:#ffc875; }
@@ -55,6 +55,24 @@
     .footer {font-size:10px;line-height:1.7;color:#8498ad;margin-top:16px}.footer a {color:#81d2f1}
     #toast {position:absolute;z-index:5;bottom:72px;left:50%;transform:translateX(-50%);max-width:min(570px,90%);padding:12px 17px;border-radius:10px;border:1px solid #4d7791;background:#132a3d;color:#f1f9ff;box-shadow:0 8px 35px #0008;display:none;text-align:center;font-size:12px;line-height:1.6;pointer-events:none}
     @media(max-width:830px) { .app {grid-template-columns:1fr;grid-template-rows:56px minmax(280px,56dvh) minmax(0,1fr)} header {padding:0 12px;gap:9px}.pill {display:none}.brand strong {font-size:14px}.viewer-top {top:9px;left:9px;right:9px}.floating {padding:8px 10px}#placetag{font-size:11px;max-width:70%}.view-buttons {flex-direction:column}.view-buttons button{font-size:10px;padding:7px 9px}.viewer-bottom {bottom:9px;left:9px;right:9px}.hint {font-size:10px;padding:7px 9px}aside {border-left:0;border-top:1px solid var(--line);padding:15px}.header-tools button {font-size:11px;padding:8px 10px}}
+
+    /* Building inspector — operates only in scout mode, never in FPS. */
+    #buildingInspector{scroll-margin-top:12px;background:#132235;border:1px solid #345269;border-radius:12px;padding:13px;margin:12px 0 20px}
+    #buildingInspector h2{margin-bottom:9px}
+    #buildingInspector .b-name{font-size:17px;font-weight:750;color:#d8fff3;line-height:1.4;overflow-wrap:anywhere}
+    #buildingInspector .b-meta{font-size:11px;color:#b6c8da;line-height:1.7;overflow-wrap:anywhere}
+    #buildingInspector a{color:#82d4f4}
+    #buildingInspector button{padding:7px 8px;font-size:11px}
+    #buildingInspector .field{margin:9px 0}
+    .building-photo-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:12px}
+    .building-photo{border:1px solid #39536d;border-radius:8px;padding:5px;background:#0c1928;min-width:0}
+    .building-photo strong{display:block;text-align:center;font-size:11px;color:#d6e7f2;margin-bottom:5px}
+    .building-photo img,.building-photo .empty-photo{display:block;width:100%;aspect-ratio:1;object-fit:cover;background:#172b3c;border-radius:4px}
+    .building-photo .empty-photo{display:grid;place-items:center;font-size:21px;color:#82a5bb}
+    .building-photo button{margin-top:5px;width:100%;font-size:10px!important;padding:5px 2px!important}
+    .building-photo .photo-delete{border-color:#624f58;color:#ffcbcf;background:#34212c}
+    #buildingPickTip{position:absolute;display:none;pointer-events:none;z-index:2;max-width:min(230px,65vw);border-radius:7px;background:#10392fed;border:1px solid #69d9b7;color:#e7fff6;padding:6px 9px;font-size:12px;box-shadow:0 4px 16px #0008;transform:translate(10px,-18px)}
+    .app.fps #buildingPickTip{display:none!important}
     /* INKBOUND FPS mode: the editor remains intact outside this mode. */
     .app.fps {grid-template-columns:minmax(0,1fr)}
     .app.fps aside,.app.fps .viewer-top,.app.fps .viewer-bottom,.app.fps #compass{display:none}
@@ -109,7 +127,7 @@
 <div class="app">
   <header>
     <div class="logo">▥</div>
-    <div class="brand"><strong>街並みスケッチ 3D <small style="color:var(--accent);font-size:10px">v0.7.5</small></strong><span>OSM CITY SCOUT · 地図から街とゲームを生成</span></div>
+    <div class="brand"><strong>街並みスケッチ 3D <small style="color:var(--accent);font-size:10px">v0.8.0</small></strong><span>OSM CITY SCOUT · 地図から街とゲームを生成</span></div>
     <div class="header-tools"><span class="pill" id="loadstate">地図データを準備中</span><button class="primary small" id="gameBtn" disabled>▶ INKBOUND FPS</button><button class="small" id="resetPlace">↺ 西口に戻す</button></div>
   </header>
   <main class="viewer" id="viewer">
@@ -122,6 +140,7 @@
     <div class="viewer-bottom"><div class="hint">ドラッグ：回転 ／ 右ドラッグ・2本指：移動 ／ ホイール・ピンチ：ズーム<br>実際の建物・道路をOSMから取得。道路は車道・歩道・白線を描画します。真上表示は「北↑・東→」。窓を確認するには「近景」「目線」を選んでください</div><div class="hint" id="featurecount">未読み込み</div></div>
     <div id="busy" class="show" role="status" aria-live="polite"><div class="busy-content"><div class="loader"></div><b id="busy-title">街並みの読み込みを準備中</b><p id="busy-detail">OpenStreetMapに問い合わせています。<br>初回読み込みには時間がかかる場合があります。</p></div></div>
     <div id="toast" role="status" aria-live="polite"></div>
+    <div id="buildingPickTip" aria-hidden="true"></div>
     <div id="fpsHud" hidden aria-label="INKBOUND FPS HUD">
       <div class="fps-top"><div class="fps-panel"><div class="fps-caption" id="fpsHudPlace">INKBOUND / 山形駅西口</div><div class="fps-hp">HP <b id="fpsHP">100</b></div><div class="fps-health"><div id="fpsHealthBar"></div></div></div>
         <div class="fps-right-stack"><div class="fps-panel fps-score"><span>WAVE <b id="fpsWave">01</b></span><span>SCORE <b id="fpsScore">0000</b></span></div>
@@ -148,6 +167,22 @@
       <p class="map-caption">地図: © OpenStreetMap contributors · 西口広場を初期中心に設定</p>
       <div class="stats"><div class="stat"><strong id="buildingCount">—</strong><span>建物</span></div><div class="stat"><strong id="roadCount">—</strong><span>道路</span></div><div class="stat"><strong id="treeCount">—</strong><span>樹木</span></div></div>
     </section>
+    <section id="buildingInspector" aria-label="建物情報と写真">
+      <h2>建物情報・写真登録 <em>BUILDING</em></h2>
+      <p id="buildingEmpty" class="help">3D地図で建物をクリックすると、OSMに登録された名称・階数・住所と写真登録欄を表示します。ドラッグは従来どおりカメラ操作です。</p>
+      <div id="buildingDetails" hidden>
+        <div class="b-name" id="selectedBuildingName">名称未登録</div>
+        <div class="b-meta" id="selectedBuildingInfo"></div>
+        <div class="b-meta"><a id="selectedBuildingOsm" href="#" target="_blank" rel="noopener noreferrer">OpenStreetMapで詳細を開く ↗</a></div>
+        <div class="field"><label for="buildingAlias">表示名（OSMに未登録の場合も任意で保存可）</label>
+          <div class="form-row"><input id="buildingAlias" type="text" maxlength="90" placeholder="例：〇〇ビル（この端末だけ）"><button id="saveBuildingAlias">保存</button></div></div>
+        <div class="building-photo-grid" id="buildingPhotoGrid" aria-label="建物写真"></div>
+        <input id="buildingPhotoInput" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,image/*" hidden>
+        <p id="buildingSaveStatus" class="help" aria-live="polite">正面・側面・背面の写真を1枚ずつ登録できます。</p>
+        <button id="closeBuilding" class="small" style="margin-top:8px">選択を解除</button>
+        <p class="help">写真と表示名はこのブラウザ内だけに保存されます。写真からの自動3D生成は次の開発段階です。OSM上の建物名は変更しません。</p>
+      </div>
+    </section>
     <section>
       <h2>02 · 絵の描き方 <em>STYLE</em></h2>
       <div class="chips" id="styles"><button data-style="color">カラー</button><button data-style="colorline">カラー＋線</button><button data-style="line">線画</button><button data-style="tone" class="active">マンガ調</button></div>
@@ -171,7 +206,7 @@
       <div class="chips" style="margin-top:8px"><button id="copyLink">🔗 短縮URLをコピー</button><button id="copyGameLink">🎮 FPS短縮URL</button><button id="openOsm">↗ OSMで見る</button></div>
       <p class="help">PNGは現在の画面の解像度で保存します。GLBは街並みの3D形状を出力し、BlenderやUnityで利用できます。</p>
     </section>
-    <div class="note">v0.7.5：木にプレイヤー・敵ドローン・敵弾の衝突判定を追加。敵弾が木に当たると木と弾が両方消え、ゲーム再開時と地図に戻る際に植栽を復元します。v0.7.4：元のINKBOUNDに合わせてノート紙カード全体を傾斜、FPS画面の左下にOSM連動ミニマップ、WAVE/SCORE下に操作説明を移動。v0.7.3：INKBOUNDの傾斜ロゴとGitHub Pagesだけで利用できる短縮URL（#g=）を追加。短縮URLには座標・範囲・ゲーム指定を保存し、地名は表示用に逆引きします。v0.7.2：検索した地名を地図取得中・ゲーム開始画面・HUDに反映し、FPS共有URLでも場所を復元。v0.7.1：ドローンの建物壁への衝突判定と迂回・上昇回避、直接FPSを開始する共有URLに対応。v0.7.0：INKBOUND FPS戦闘モードを追加（WASD、射撃、ジャンプ、ダッシュ、グラップリング、ドローンWave制、建物の壁・屋上衝突）。地図表示と切替可能。ゲーム操作はPCブラウザ推奨。v0.6.0までの改善：地上の線路と建物の重なりを判定し、線路部分の建物をくり抜きます。駅舎・上屋は高架状の構造として補完する場合があります。<strong>駅の内部構造・高さは実測ではありません。</strong> 窓台・集合住宅ベランダの立体表現を追加。OSMの単木・並木を取り込み、周辺の公園・歩道沿いの街路樹を推定補完。表示／密度切替と出典数の表示、樹木のインスタンス化で描画負荷を軽減。地図の左右反転を修正。真上表示は北が上・東が右です。道路の見え方を改善し、<strong>車道・歩道・道路輪郭・中央線・横断歩道</strong>を描画します。建物では線画の窓枠、大きな建物の窓・入口・階層線、OSMのbuilding:part・屋根情報を反映します。<strong>窓位置・道路細部・横断歩道の一部は推定</strong>です。現地の実測3Dモデルではありません。</div>
+    <div class="note">v0.8.0：建物をクリックしてOSMの名称・属性を表示。建物ごとの表示名と正面・側面・背面写真をIndexedDBへ保存（未対応ブラウザでは一時保存）。写真からの3D生成は次段階。v0.7.5：木にプレイヤー・敵ドローン・敵弾の衝突判定を追加。敵弾が木に当たると木と弾が両方消え、ゲーム再開時と地図に戻る際に植栽を復元します。v0.7.4：元のINKBOUNDに合わせてノート紙カード全体を傾斜、FPS画面の左下にOSM連動ミニマップ、WAVE/SCORE下に操作説明を移動。v0.7.3：INKBOUNDの傾斜ロゴとGitHub Pagesだけで利用できる短縮URL（#g=）を追加。短縮URLには座標・範囲・ゲーム指定を保存し、地名は表示用に逆引きします。v0.7.2：検索した地名を地図取得中・ゲーム開始画面・HUDに反映し、FPS共有URLでも場所を復元。v0.7.1：ドローンの建物壁への衝突判定と迂回・上昇回避、直接FPSを開始する共有URLに対応。v0.7.0：INKBOUND FPS戦闘モードを追加（WASD、射撃、ジャンプ、ダッシュ、グラップリング、ドローンWave制、建物の壁・屋上衝突）。地図表示と切替可能。ゲーム操作はPCブラウザ推奨。v0.6.0までの改善：地上の線路と建物の重なりを判定し、線路部分の建物をくり抜きます。駅舎・上屋は高架状の構造として補完する場合があります。<strong>駅の内部構造・高さは実測ではありません。</strong> 窓台・集合住宅ベランダの立体表現を追加。OSMの単木・並木を取り込み、周辺の公園・歩道沿いの街路樹を推定補完。表示／密度切替と出典数の表示、樹木のインスタンス化で描画負荷を軽減。地図の左右反転を修正。真上表示は北が上・東が右です。道路の見え方を改善し、<strong>車道・歩道・道路輪郭・中央線・横断歩道</strong>を描画します。建物では線画の窓枠、大きな建物の窓・入口・階層線、OSMのbuilding:part・屋根情報を反映します。<strong>窓位置・道路細部・横断歩道の一部は推定</strong>です。現地の実測3Dモデルではありません。</div>
     <div class="footer">地図データ © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a> (ODbL)<br>3Dエンジン: three.js (MIT)／建物・道路: Overpass API<br>地名検索: Nominatim（公開APIの利用制限に従います）<br>単一HTML。初回の3Dライブラリ取得と地図データ取得にはインターネット接続が必要です。公開APIは混雑・通信制限で失敗する場合があります。</div>
   </aside>
 </div>
@@ -187,6 +222,12 @@ const detailStats={windows:0,doors:0,taggedHeights:0,parts:0,roofs:0,sills:0,bal
 const vegetationStats={mapped:0,treeRows:0,estimated:0};
 let timer=0;
 let cityRoot = new THREE.Group(); cityRoot.name='OSM Yamagata City';
+const buildingInfoById=new Map();
+let chosenBuildingId=null, chosenBuildingEpoch=0, photoSlotToUpload='front';
+const selectedEdgeGroup=new THREE.Group();selectedEdgeGroup.name='Scout selection highlight (not in GLB)';
+const photoObjectUrls=[];
+const localNameFallback=new Map(),localPhotoFallback=new Map();
+let inspectorDBPromise=null;
 const gameColliders=[];
 // Trees stay batched for fast drawing, but each instance has its own FPS hitbox and life state.
 const gameTrees=[],gameTreeGrid=new Map(),treeCell=16;
@@ -241,7 +282,7 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));renderer.outputCo
 renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.4;
 const ambient=new THREE.HemisphereLight(0xffffff,0xc4b5a2,2.7);scene.add(ambient);
 const sunlight=new THREE.DirectionalLight(0xffffff,2.4);sunlight.position.set(260,480,320);scene.add(sunlight);
-scene.add(cityRoot);
+scene.add(cityRoot);scene.add(selectedEdgeGroup);
 const groundMat=new THREE.MeshStandardMaterial({color:0xe9e9e1,roughness:1});
 const ground=new THREE.Mesh(new THREE.PlaneGeometry(5000,5000),groundMat);ground.rotation.x=-Math.PI/2;ground.position.y=-0.1;scene.add(ground);
 const controls=new OrbitControls(camera,canvas);controls.enableDamping=true;controls.dampingFactor=.09;controls.maxDistance=1050;controls.minDistance=3;controls.maxPolarAngle=Math.PI*.495;controls.screenSpacePanning=true;
@@ -870,7 +911,7 @@ function clearCity(){for(const key of Object.keys(pieces)){for(const obj of piec
  }pieces[key].length=0;}}
 function buildWorld(elements,preserveCamera=false){
  const savedPosition=camera.position.clone(),savedTarget=controls.target.clone();
- clearCity();gameTrees.length=0;gameTreeGrid.clear();gameColliders.length=0;gameCollisionGrid.clear();newDetailBuffer();let buildings=0,roads=0,trees=0,railways=0;
+ clearBuildingSelection();clearCity();buildingInfoById.clear();gameTrees.length=0;gameTreeGrid.clear();gameColliders.length=0;gameCollisionGrid.clear();newDetailBuffer();let buildings=0,roads=0,trees=0,railways=0;
  const park=[],road=[],rail=[],building=[],parts=[],nodes=[],treeRows=[],plantingAreas=[];
  for(const el of elements){const t=el.tags||{};
   if(el.type==='node'&&t.natural==='tree')nodes.push(el);
@@ -883,6 +924,14 @@ function buildWorld(elements,preserveCamera=false){
    else if(t.leisure==='park'||['grass','forest','meadow','recreation_ground'].includes(t.landuse)||['water','wood','scrub'].includes(t.natural)||t.leisure==='garden')park.push(el);
    if(t.leisure==='park'||t.leisure==='garden'||['grass','forest','meadow'].includes(t.landuse)||['wood','scrub'].includes(t.natural))plantingAreas.push(el);
   }
+ }
+ // The selectable mesh keeps its way ID; OSM tags are kept separately to avoid bloating GLB output.
+ for(const e of [...building,...parts])buildingInfoById.set(String(e.id),{tags:e.tags||{},id:String(e.id),part:!!e.tags?.['building:part']});
+ // Some building:part ways have no name; annotate them with a containing named building, if known.
+ const namedParents=building.filter(e=>e.tags?.['name:ja']||e.tags?.name).map(e=>({tags:e.tags,pts:osmPoints(e)})).filter(x=>x.pts.length>2);
+ for(const part of parts){const info=buildingInfoById.get(String(part.id));if(info.tags.name||info.tags['name:ja'])continue;
+  const pts=osmPoints(part);if(!pts.length)continue;const center=pts.reduce((v,p)=>[v[0]+p[0]/pts.length,v[1]+p[1]/pts.length],[0,0]);
+  const parent=namedParents.find(parent=>pointInPolygon(center,parent.pts));if(parent)info.parentName=parent.tags['name:ja']||parent.tags.name;
  }
  // OSM の建物部分は全体の輪郭より優先（重なった二重の箱を避ける）。
  // 一部分しか記録されていない建物は元の輪郭も残す。
@@ -1025,7 +1074,7 @@ function syncPlaceLabels(){
  $('fpsPlaceTitle').textContent=name;
  $('fpsHudPlace').textContent=`INKBOUND / ${name}`;
  $('fpsIntro').textContent=`${name}の街を戦場に、追跡ドローンと戦おう。木は敵弾を防ぎ、弾が当たると木も弾も消えます。建物の高さ・屋上にはOSM情報に基づく推定を含みます。`;
- document.title=`${game.active?'INKBOUND':'街並みスケッチ 3D v0.7.5'} | ${name}`;
+ document.title=`${game.active?'INKBOUND':'街並みスケッチ 3D v0.8.0'} | ${name}`;
 }
 function updatePlaceUI(){
  $('lat').value=state.lat;$('lon').value=state.lon;$('radius').value=state.radius;
@@ -1095,6 +1144,7 @@ async function fetchOverpass(query){
 }
 async function loadCity(explicitPlaceName){
  if(game.active)leaveGame();
+ clearBuildingSelection();
  $('gameBtn').disabled=true;
  const id=++activeLoad;const lat=Number($('lat').value),lon=Number($('lon').value),radius=Number($('radius').value);
  if(!Number.isFinite(lat)||lat<-90||lat>90||!Number.isFinite(lon)||lon<-180||lon>180){toast('緯度・経度の入力を確認してください');return}
@@ -1148,6 +1198,145 @@ async function glbSave(){if(!state.loaded){toast('地図の読み込み後にGLB
  catch(e){console.error(e);toast('GLBの出力に失敗しました：'+e.message,6500)}finally{setBusy(false)}
 }
 function setLens(mm){camera.fov=THREE.MathUtils.radToDeg(2*Math.atan(36/(2*Number(mm))));camera.updateProjectionMatrix()}
+
+// --- Building picker / photo album. Images never leave this browser. ---
+const buildingPickerRay=new THREE.Raycaster();
+const BUILDING_SIDES=[['front','正面'],['side','側面'],['back','背面']];
+function buildingKey(id){return 'way:'+String(id)}
+function openBuildingDB(){
+ if(inspectorDBPromise)return inspectorDBPromise;
+ inspectorDBPromise=new Promise(resolve=>{
+  if(!('indexedDB' in window)){resolve(null);return}
+  let req;try{req=indexedDB.open('cityscout-building-photos',1)}catch{resolve(null);return}
+  req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains('names'))db.createObjectStore('names');if(!db.objectStoreNames.contains('photos'))db.createObjectStore('photos')};
+  req.onsuccess=()=>resolve(req.result);req.onerror=()=>resolve(null);req.onblocked=()=>resolve(null);
+ });return inspectorDBPromise;
+}
+async function buildingStorageGet(store,key){
+ const db=await openBuildingDB();if(!db)return (store==='names'?localNameFallback:localPhotoFallback).get(key)||null;
+ return await new Promise(resolve=>{try{const req=db.transaction(store,'readonly').objectStore(store).get(key);req.onsuccess=()=>resolve(req.result??null);req.onerror=()=>resolve(null)}catch{resolve(null)}});
+}
+async function buildingStorageSet(store,key,value){
+ const db=await openBuildingDB();if(!db){(store==='names'?localNameFallback:localPhotoFallback).set(key,value);return false}
+ return await new Promise(resolve=>{try{const req=db.transaction(store,'readwrite').objectStore(store).put(value,key);req.onsuccess=()=>resolve(true);req.onerror=()=>resolve(false)}catch{resolve(false)}});
+}
+async function buildingStorageDelete(store,key){
+ const db=await openBuildingDB();if(!db){(store==='names'?localNameFallback:localPhotoFallback).delete(key);return false}
+ return await new Promise(resolve=>{try{const req=db.transaction(store,'readwrite').objectStore(store).delete(key);req.onsuccess=()=>resolve(true);req.onerror=()=>resolve(false)}catch{resolve(false)}});
+}
+function releasePhotoUrls(){while(photoObjectUrls.length)URL.revokeObjectURL(photoObjectUrls.pop())}
+function selectedBuildingName(info,alias){const tags=info.tags||{};return alias||tags['name:ja']||tags.name||(info.parentName?info.parentName+'（建物部分）':'名称未登録')}
+function buildingAddress(tags){const joined=[tags['addr:prefecture'],tags['addr:city'],tags['addr:street'],tags['addr:housenumber']].filter(Boolean).join(' ');return tags['addr:full']||joined||'住所の登録なし'}
+function clearSelectionOutline(){
+ for(const child of [...selectedEdgeGroup.children]){selectedEdgeGroup.remove(child);child.geometry?.dispose();child.material?.dispose()}
+ $('buildingPickTip').style.display='none';
+}
+function clearBuildingSelection(){
+ chosenBuildingId=null;chosenBuildingEpoch++;
+ clearSelectionOutline();releasePhotoUrls();
+ $('buildingDetails').hidden=true;$('buildingEmpty').hidden=false;
+ $('buildingPhotoInput').value='';
+}
+function markBuildingSelection(id){
+ clearSelectionOutline();
+ // Selection outlines are outside cityRoot so GLB export does not include editing highlights.
+ cityRoot.updateMatrixWorld(true);
+ for(const mesh of pieces.building){if(String(mesh.userData.osmId)!==String(id))continue;
+  const geo=new THREE.EdgesGeometry(mesh.geometry,22);geo.applyMatrix4(mesh.matrixWorld);
+  const outline=new THREE.LineSegments(geo,new THREE.LineBasicMaterial({color:0x12d5ad,depthTest:false,transparent:true,opacity:.85}));
+  outline.renderOrder=7;selectedEdgeGroup.add(outline);
+ }
+}
+function setBuildingSaveStatus(message){$('buildingSaveStatus').textContent=message}
+async function renderBuildingPhotos(id,epoch){
+ if(chosenBuildingId!==id||chosenBuildingEpoch!==epoch)return;
+ releasePhotoUrls();const grid=$('buildingPhotoGrid');grid.replaceChildren();
+ for(const [slot,label] of BUILDING_SIDES){
+  const card=document.createElement('div');card.className='building-photo';const title=document.createElement('strong');title.textContent=label;card.append(title);
+  const data=await buildingStorageGet('photos',buildingKey(id)+'|'+slot);
+  if(chosenBuildingId!==id||chosenBuildingEpoch!==epoch)return;
+  if(data?.blob instanceof Blob){
+   const preview=document.createElement('img');const url=URL.createObjectURL(data.blob);photoObjectUrls.push(url);preview.src=url;preview.alt=label+'の登録写真';card.append(preview);
+  } else {const empty=document.createElement('div');empty.className='empty-photo';empty.textContent='＋';card.append(empty)}
+  const add=document.createElement('button');add.textContent=data?'差し替え':'写真追加';add.dataset.pickPhoto=slot;card.append(add);
+  if(data){const del=document.createElement('button');del.className='photo-delete';del.textContent='削除';del.dataset.deletePhoto=slot;card.append(del)}
+  grid.append(card);
+ }
+}
+async function selectBuilding(id,clientX,clientY){
+ const info=buildingInfoById.get(String(id));if(!info){toast('この建物のOSM属性が見つかりません');return}
+ chosenBuildingId=String(id);const epoch=++chosenBuildingEpoch;const tags=info.tags;
+ markBuildingSelection(id);
+ $('buildingEmpty').hidden=true;$('buildingDetails').hidden=false;
+ $('selectedBuildingName').textContent=selectedBuildingName(info);
+ const metrics=[`OSM way ${id}`,`建物タイプ: ${tags.building||tags['building:part']||'未登録'}`,`高さ: ${tags.height?tags.height+'m': '未登録'}`,`階数: ${tags['building:levels']||'未登録'}`,`住所: ${buildingAddress(tags)}`];
+ $('selectedBuildingInfo').textContent=metrics.join(' ／ ');
+ $('selectedBuildingOsm').href='https://www.openstreetmap.org/way/'+encodeURIComponent(id);
+ $('buildingAlias').value='';setBuildingSaveStatus('写真はブラウザ内に保存します。自動3D生成は次の段階です。');
+ // A small label near the clicked building provides immediate feedback, even with a scrolled sidebar.
+ const rect=$('viewer').getBoundingClientRect(),tip=$('buildingPickTip');
+ tip.textContent=selectedBuildingName(info);tip.style.left=Math.max(0,Math.min(clientX-rect.left,rect.width-215))+'px';tip.style.top=Math.max(40,Math.min(clientY-rect.top,rect.height-20))+'px';tip.style.display='block';
+ $('buildingInspector').scrollIntoView({behavior:'smooth',block:'nearest'});
+ const alias=await buildingStorageGet('names',buildingKey(id));
+ if(chosenBuildingEpoch!==epoch)return;
+ $('buildingAlias').value=alias||'';$('selectedBuildingName').textContent=selectedBuildingName(info,alias);
+ tip.textContent=selectedBuildingName(info,alias);
+ await renderBuildingPhotos(String(id),epoch);
+ const db=await openBuildingDB();if(chosenBuildingEpoch===epoch&&!db)setBuildingSaveStatus('この環境では永続保存を利用できないため、このページを開いている間だけ保持されます。');
+}
+async function fileToJpegBlob(file){
+ if(!file.type.startsWith('image/'))throw new Error('画像ファイルを選んでください');
+ if(file.size>16*1024*1024)throw new Error('画像サイズは16MB以下にしてください');
+ const localUrl=URL.createObjectURL(file);
+ try{
+  const img=await new Promise((resolve,reject)=>{const picture=new Image();picture.onload=()=>resolve(picture);picture.onerror=()=>reject(new Error('写真を読み込めませんでした'));picture.src=localUrl});
+  const maxSide=1600,scale=Math.min(1,maxSide/Math.max(img.naturalWidth,img.naturalHeight));
+  const cvs=document.createElement('canvas');cvs.width=Math.max(1,Math.round(img.naturalWidth*scale));cvs.height=Math.max(1,Math.round(img.naturalHeight*scale));
+  cvs.getContext('2d').drawImage(img,0,0,cvs.width,cvs.height);
+  const blob=await new Promise(resolve=>cvs.toBlob(resolve,'image/jpeg',.82));if(!blob)throw new Error('画像の変換に失敗しました');return blob;
+ }finally{URL.revokeObjectURL(localUrl)}
+}
+let buildingPointerStart=null;
+canvas.addEventListener('pointerdown',e=>{if(game.active||e.button!==0){buildingPointerStart=null;return;}buildingPointerStart={x:e.clientX,y:e.clientY,id:e.pointerId}});
+canvas.addEventListener('pointerup',e=>{
+ if(game.active||!state.loaded||!buildingPointerStart||buildingPointerStart.id!==e.pointerId)return;
+ const dx=e.clientX-buildingPointerStart.x,dy=e.clientY-buildingPointerStart.y;buildingPointerStart=null;
+ if(dx*dx+dy*dy>36)return;
+ const rect=canvas.getBoundingClientRect();buildingPickerRay.setFromCamera(new THREE.Vector2((e.clientX-rect.left)/rect.width*2-1,-(e.clientY-rect.top)/rect.height*2+1),camera);
+ const hits=buildingPickerRay.intersectObjects(pieces.building,false);
+ if(!hits.length){clearBuildingSelection();return}
+ const id=hits[0].object.userData.osmId;if(id!=null)selectBuilding(id,e.clientX,e.clientY);
+});
+canvas.addEventListener('pointercancel',()=>buildingPointerStart=null);
+$('closeBuilding').addEventListener('click',clearBuildingSelection);
+$('saveBuildingAlias').addEventListener('click',async()=>{
+ if(!chosenBuildingId)return;const id=chosenBuildingId,alias=$('buildingAlias').value.trim().slice(0,90),epoch=chosenBuildingEpoch;
+ const ok=await buildingStorageSet('names',buildingKey(id),alias);
+ if(chosenBuildingEpoch!==epoch)return;
+ const info=buildingInfoById.get(id);$('selectedBuildingName').textContent=selectedBuildingName(info,alias);
+ $('buildingPickTip').textContent=selectedBuildingName(info,alias);
+ setBuildingSaveStatus(ok?'表示名を保存しました（このブラウザのみ）':'表示名を一時保存しました。永続保存が利用できない可能性があります。');
+});
+$('buildingPhotoGrid').addEventListener('click',async e=>{
+ const pick=e.target.closest('[data-pick-photo]');
+ if(pick){photoSlotToUpload=pick.dataset.pickPhoto;$('buildingPhotoInput').value='';$('buildingPhotoInput').click();return}
+ const del=e.target.closest('[data-delete-photo]');if(!del||!chosenBuildingId)return;
+ const id=chosenBuildingId,epoch=chosenBuildingEpoch;
+ const ok=await buildingStorageDelete('photos',buildingKey(id)+'|'+del.dataset.deletePhoto);
+ if(chosenBuildingId!==id||chosenBuildingEpoch!==epoch)return;
+ setBuildingSaveStatus(ok?'写真を削除しました':'写真を一時的に削除しました');
+ await renderBuildingPhotos(id,epoch);
+});
+$('buildingPhotoInput').addEventListener('change',async e=>{
+ const file=e.target.files?.[0];if(!file||!chosenBuildingId)return;
+ const id=chosenBuildingId,epoch=chosenBuildingEpoch,slot=photoSlotToUpload;
+ setBuildingSaveStatus('写真を縮小して保存しています…');
+ try{const blob=await fileToJpegBlob(file);const ok=await buildingStorageSet('photos',buildingKey(id)+'|'+slot,{blob,name:file.name,updated:Date.now()});
+  if(chosenBuildingId!==id||chosenBuildingEpoch!==epoch)return;
+  setBuildingSaveStatus(ok?'写真を保存しました（このブラウザのみ）':'写真を一時保存しました。永続保存が利用できない可能性があります。');
+  await renderBuildingPhotos(id,epoch);
+ }catch(error){if(chosenBuildingId===id&&chosenBuildingEpoch===epoch)setBuildingSaveStatus('写真の保存に失敗: '+error.message)}
+});
 
 // INKBOUND FPS integration. Game models live outside cityRoot, so GLB exports remain unchanged.
 const game={active:false,locked:false,dead:false,started:false,keys:Object.create(null),fire:false,player:new THREE.Vector3(),vel:new THREE.Vector3(),yaw:0,pitch:0,eye:1.7,grounded:true,airDash:true,dash:0,slide:0,grapple:null,
@@ -1325,6 +1514,7 @@ function drawGameRadar(force=false){
 }
 function gameEnter(){if(!state.loaded){toast('先に地図を読み込んでください');return}
  if(game.active)return;
+ clearBuildingSelection();
  setGameUrlMode(true);
  controls.enabled=false;game.active=true;game.locked=false;syncPlaceLabels();gameReset();prepareGameRadar();drawGameRadar(true);document.querySelector('.app').classList.add('fps');$('fpsHud').hidden=false;$('fpsMenu').hidden=false;$('fpsResume').textContent='▶ 戦闘開始';syncPlaceLabels();$('fpsMsg').textContent='クリックでマウスを固定します。ESCで一時停止。';gun.visible=true;$('gameBtn').textContent='✕ 地図へ戻る';gameAim();
 }
