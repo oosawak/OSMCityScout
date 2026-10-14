@@ -1,0 +1,653 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#101927">
+  <title>街並みスケッチ 3D v0.4.1 | 山形駅西口</title>
+  <meta name="description" content="OpenStreetMapの建物・道路をブラウザで3D化。山形駅西口から街並みの線画、マンガ調の背景画像やGLBを作成できます。">
+  <style>
+    :root { color-scheme: dark; --bg:#0b111b; --panel:#111c2b; --panel2:#182638; --line:#2b3c51; --text:#edf3fc; --muted:#9bacbf; --accent:#71e0bc; --cyan:#82c9f7; --orange:#ffc875; }
+    * { box-sizing:border-box; }
+    html,body { height:100%;margin:0;overflow:hidden;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Noto Sans JP",Meiryo,sans-serif;color:var(--text); }
+    button,input,select { font:inherit; }
+    button { border:1px solid var(--line);border-radius:11px;padding:10px 12px;color:var(--text);background:#223247;cursor:pointer;transition:background .15s,border-color .15s; }
+    button:hover { background:#2a405b;border-color:#4e708c; } button:focus-visible,input:focus-visible,select:focus-visible {outline:2px solid var(--accent);outline-offset:2px}
+    button.primary { background:#127860;border-color:#169a78;font-weight:700; } button.primary:hover {background:#159674}
+    button.small {padding:8px 10px;font-size:12px}
+    input,select {width:100%;height:39px;background:#091522;border:1px solid #31455b;border-radius:9px;color:var(--text);padding:8px 10px;min-width:0}
+    input[type="range"] {border:0;background:transparent;padding:0;height:25px;accent-color:var(--accent)}
+    input[type="checkbox"] {width:auto;height:auto;accent-color:var(--accent)}
+    label {font-size:12px;color:#b6c6d6;display:block;margin-bottom:6px}
+    .app { height:100dvh;display:grid;grid-template-columns:minmax(0,1fr) 334px;grid-template-rows:64px minmax(0,1fr); }
+    header {grid-column:1/-1;background:#101a28;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:15px;padding:0 19px;min-width:0}
+    .logo {width:38px;height:38px;background:linear-gradient(145deg,#3d846c,#1d5664);border:1px solid #489a85;display:grid;place-items:center;border-radius:12px;font-size:22px}
+    .brand {min-width:0} .brand strong {font-size:16px;letter-spacing:.06em;display:block} .brand span {color:var(--muted);font-size:10px;display:block;margin-top:3px}
+    .header-tools {display:flex;align-items:center;gap:8px;margin-left:auto} .pill {border:1px solid #35536b;border-radius:99px;padding:7px 11px;font-size:11px;color:#add9e9;background:#17283a;white-space:nowrap}
+    .viewer {position:relative;min-width:0;min-height:0;background:linear-gradient(#d2e5ed,#f9f9f0);overflow:hidden;touch-action:none}
+    #scene {display:block;width:100%;height:100%;outline:0}
+    .viewer-top {position:absolute;top:17px;left:17px;right:17px;display:flex;justify-content:space-between;align-items:start;gap:10px;pointer-events:none}
+    .floating {background:#142131ee;border:1px solid #43586e;border-radius:12px;padding:10px 13px;backdrop-filter:blur(8px);pointer-events:auto;box-shadow:0 6px 22px #101a292c}
+    #placetag {max-width:min(490px,75%);font-size:14px;font-weight:700}
+    #placetag small {display:block;font-size:11px;color:#b8c9d9;font-weight:400;margin-top:4px}
+    .view-buttons {display:flex;gap:5px;pointer-events:auto} .view-buttons button {font-size:12px;padding:9px 11px;white-space:nowrap}
+    .viewer-bottom {pointer-events:none;position:absolute;bottom:16px;left:16px;right:16px;display:flex;justify-content:space-between;align-items:end;gap:12px}
+    #compass{position:absolute;top:70px;right:20px;border:1px solid #42566a;background:#142131df;border-radius:12px;padding:6px 11px;pointer-events:none;display:flex;align-items:center;gap:6px;font-size:12px;color:#e2eef8;box-shadow:0 5px 16px #0003}
+    #compassNeedle{display:inline-block;font-size:19px;color:#71e0bc;line-height:1;transform-origin:center center}
+    .compassN{font-weight:700;letter-spacing:.04em}
+    .hint {padding:10px 13px;background:#101b2bd9;border-radius:10px;color:#d4e4f0;font-size:11px;line-height:1.7;max-width:520px;backdrop-filter:blur(5px)}
+    #busy {position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:#0a1421a6;backdrop-filter:blur(4px);z-index:3}
+    #busy.show {display:flex} .busy-content {width:min(410px,92%);padding:28px;border:1px solid #47637b;border-radius:18px;background:#142335;text-align:center;box-shadow:0 20px 90px #07111aba}
+    .loader {width:35px;height:35px;border:3px solid #334d63;border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px} @keyframes spin {to{transform:rotate(360deg)}}
+    .busy-content b {display:block;margin-bottom:9px} .busy-content p {font-size:12px;line-height:1.7;color:#b7c8d7;margin:0}
+    aside {background:#101b29;border-left:1px solid #2b3b51;overflow:auto;overscroll-behavior:contain;padding:17px 15px 32px;scrollbar-width:thin;scrollbar-color:#395066 transparent}
+    section {margin-bottom:20px;padding-bottom:19px;border-bottom:1px solid #293b4e} section:last-child {border:0;margin-bottom:0}
+    h2 {margin:0 0 13px;font-size:13px;letter-spacing:.07em;color:#f1f6fd;display:flex;align-items:center;justify-content:space-between} h2 em {font-style:normal;color:#8dacc3;font-size:10px;font-weight:400;letter-spacing:0}
+    .field {margin-bottom:12px} .grid2 {display:grid;grid-template-columns:1fr 1fr;gap:9px} .form-row {display:flex;gap:7px}.form-row input {flex:1} .form-row button {white-space:nowrap}
+    .chips {display:flex;gap:7px;flex-wrap:wrap} .chips button {flex:1;white-space:nowrap}
+    .chips button.active {border-color:#65beaa;background:#184a43;color:#c7fff1}
+    .stats {display:flex;gap:8px;margin-top:12px}.stat {background:#0b1724;border:1px solid #23374b;border-radius:9px;padding:10px 7px;text-align:center;flex:1}.stat strong{display:block;color:#d2f7ee;font-size:18px}.stat span{font-size:10px;color:#98acc1}
+    .switch-row {display:flex;align-items:center;gap:8px;color:#b8c9da;font-size:12px;padding:5px 0;cursor:pointer}.switch-row label {margin:0;cursor:pointer;font-size:12px}
+    .range-row {display:flex;align-items:center;gap:8px}.range-row input {flex:1}.range-row output {min-width:32px;text-align:right;color:#cfe5f2;font-size:12px}
+    .map {height:174px;border:1px solid #344c62;overflow:hidden;border-radius:11px;position:relative;background:#dce6e8}
+    .map iframe {width:100%;height:100%;border:0} .map-caption {font-size:10px;color:#98aabe;margin-top:7px;line-height:1.65}
+    .help {font-size:11px;line-height:1.8;color:#8fa8bc;margin:8px 0 0}.note {font-size:11px;line-height:1.7;color:#b1c9d9;background:#1a2b3c;border-left:3px solid var(--cyan);padding:10px;border-radius:3px 8px 8px 3px}
+    .footer {font-size:10px;line-height:1.7;color:#8498ad;margin-top:16px}.footer a {color:#81d2f1}
+    #toast {position:absolute;z-index:5;bottom:72px;left:50%;transform:translateX(-50%);max-width:min(570px,90%);padding:12px 17px;border-radius:10px;border:1px solid #4d7791;background:#132a3d;color:#f1f9ff;box-shadow:0 8px 35px #0008;display:none;text-align:center;font-size:12px;line-height:1.6;pointer-events:none}
+    @media(max-width:830px) { .app {grid-template-columns:1fr;grid-template-rows:56px minmax(280px,56dvh) minmax(0,1fr)} header {padding:0 12px;gap:9px}.pill {display:none}.brand strong {font-size:14px}.viewer-top {top:9px;left:9px;right:9px}.floating {padding:8px 10px}#placetag{font-size:11px;max-width:70%}.view-buttons {flex-direction:column}.view-buttons button{font-size:10px;padding:7px 9px}.viewer-bottom {bottom:9px;left:9px;right:9px}.hint {font-size:10px;padding:7px 9px}aside {border-left:0;border-top:1px solid var(--line);padding:15px}.header-tools button {font-size:11px;padding:8px 10px}}
+  </style>
+  <script type="importmap">
+    {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.168.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.168.0/examples/jsm/"}}
+  </script>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo">▥</div>
+    <div class="brand"><strong>街並みスケッチ 3D <small style="color:var(--accent);font-size:10px">v0.4.1</small></strong><span>OSM CITY SCOUT · 山形駅西口からスタート</span></div>
+    <div class="header-tools"><span class="pill" id="loadstate">地図データを準備中</span><button class="small" id="resetPlace">↺ 西口に戻す</button></div>
+  </header>
+  <main class="viewer" id="viewer">
+    <canvas id="scene" aria-label="OpenStreetMapに基づく街並みの3D表示"></canvas>
+    <div class="viewer-top">
+      <div class="floating" id="placetag">山形駅 西口駅前広場<small>山形市 · 38.2485213, 140.3266479</small></div>
+      <div class="view-buttons"><button id="birdView">俯瞰</button><button id="closeView">近景</button><button id="topView">真上</button><button id="eyeView">目線</button></div>
+    </div>
+    <div id="compass" aria-label="北の方角" title="北の方向"><span id="compassNeedle">↑</span><span class="compassN">N</span></div>
+    <div class="viewer-bottom"><div class="hint">ドラッグ：回転 ／ 右ドラッグ・2本指：移動 ／ ホイール・ピンチ：ズーム<br>実際の建物・道路をOSMから取得。道路は車道・歩道・白線を描画します。真上表示は「北↑・東→」。窓を確認するには「近景」「目線」を選んでください</div><div class="hint" id="featurecount">未読み込み</div></div>
+    <div id="busy" class="show" role="status" aria-live="polite"><div class="busy-content"><div class="loader"></div><b id="busy-title">山形駅西口の街並みを読み込み中</b><p id="busy-detail">OpenStreetMapに問い合わせています。<br>初回読み込みには時間がかかる場合があります。</p></div></div>
+    <div id="toast" role="status" aria-live="polite"></div>
+  </main>
+  <aside>
+    <section>
+      <h2>01 · 場所を選ぶ <em>LOCATION</em></h2>
+      <div class="field"><label for="searchText">地名・住所・緯度経度</label><div class="form-row"><input id="searchText" type="text" value="山形駅 西口" placeholder="山形駅 西口、または緯度,経度"><button class="primary" id="searchBtn">探す</button></div></div>
+      <div class="grid2">
+        <div class="field"><label for="lat">緯度</label><input id="lat" type="number" step="any" value="38.2485213"></div>
+        <div class="field"><label for="lon">経度</label><input id="lon" type="number" step="any" value="140.3266479"></div>
+      </div>
+      <div class="grid2"><div class="field"><label for="radius">詳細範囲</label><select id="radius"><option value="180">半径180m</option><option value="280" selected>半径280m</option><option value="450">半径450m</option><option value="650">半径650m（重い）</option></select></div><div class="field"><label>&nbsp;</label><button class="primary" id="loadBtn" style="width:100%">この範囲を生成</button></div></div>
+      <div class="field"><label for="osmServer">地図データ取得先（接続エラー時に変更可能）</label><select id="osmServer"><option value="auto">自動（順番に切り替え）</option><option value="private">private.coffee</option><option value="mail">VK Maps</option><option value="main">overpass-api.de</option></select></div>
+      <p id="networkInfo" class="help" aria-live="polite">地図データは外部のOverpass APIから取得します。失敗時は取得先の変更や再試行ができます。</p>
+      <div class="map"><iframe id="minimap" title="山形駅西口周辺のOpenStreetMap地図" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
+      <p class="map-caption">地図: © OpenStreetMap contributors · 西口広場を初期中心に設定</p>
+      <div class="stats"><div class="stat"><strong id="buildingCount">—</strong><span>建物</span></div><div class="stat"><strong id="roadCount">—</strong><span>道路</span></div><div class="stat"><strong id="treeCount">—</strong><span>樹木</span></div></div>
+    </section>
+    <section>
+      <h2>02 · 絵の描き方 <em>STYLE</em></h2>
+      <div class="chips" id="styles"><button data-style="color">カラー</button><button data-style="colorline">カラー＋線</button><button data-style="line">線画</button><button data-style="tone" class="active">マンガ調</button></div>
+      <div class="field" style="margin-top:14px"><label for="shade">陰影・トーンの濃さ</label><div class="range-row"><input type="range" id="shade" min="0" max="100" value="60"><output id="shadeValue">60%</output></div></div>
+      <div class="grid2"><label class="switch-row"><input type="checkbox" id="showWindows" checked> 窓・窓枠（推定）</label><label class="switch-row"><input type="checkbox" id="showTrees" checked> 木</label></div>
+      <div class="field"><label for="detailLevel">建物のディテール（変更後すぐ反映）</label><select id="detailLevel"><option value="light">軽量（窓を少なめに）</option><option value="normal" selected>標準（窓・階層線・入口）</option><option value="rich">詳細（細かな窓割り）</option></select></div>
+      <p id="buildingInfo" class="help" aria-live="polite">高さ・屋根・窓の生成状況は読み込み後に表示します。</p>
+      <label class="switch-row"><input type="checkbox" id="showRails" checked> 鉄道線路</label>
+    </section>
+    <section>
+      <h2>03 · カメラ <em>CAMERA</em></h2>
+      <div class="grid2"><div class="field"><label for="lens">レンズ（画角）</label><select id="lens"><option value="25">25mm 広角</option><option value="35" selected>35mm 標準</option><option value="50">50mm</option><option value="85">85mm 望遠</option></select></div><div class="field"><label for="sky">背景色</label><select id="sky"><option value="paper" selected>明るい紙色</option><option value="blue">青空</option><option value="gray">グレー</option></select></div></div>
+      <div class="chips"><button id="turnLeft">↶ 左へ</button><button id="turnRight">右へ ↷</button><button id="camReset">カメラ初期化</button></div>
+    </section>
+    <section>
+      <h2>04 · 書き出し <em>EXPORT</em></h2>
+      <div class="chips"><button id="savePng" class="primary">↓ PNG 画像</button><button id="saveGlb" class="primary">↓ GLB 3D</button></div>
+      <div class="chips" style="margin-top:8px"><button id="copyLink">🔗 現在の場所を共有</button><button id="openOsm">↗ OSMで見る</button></div>
+      <p class="help">PNGは現在の画面の解像度で保存します。GLBは街並みの3D形状を出力し、BlenderやUnityで利用できます。</p>
+    </section>
+    <div class="note">v0.4.1：地図の左右反転を修正。真上表示は北が上・東が右です。道路の見え方を改善し、<strong>車道・歩道・道路輪郭・中央線・横断歩道</strong>を描画します。建物では線画の窓枠、大きな建物の窓・入口・階層線、OSMのbuilding:part・屋根情報を反映します。<strong>窓位置・道路細部・横断歩道の一部は推定</strong>です。現地の実測3Dモデルではありません。</div>
+    <div class="footer">地図データ © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a> (ODbL)<br>3Dエンジン: three.js (MIT)／建物・道路: Overpass API<br>地名検索: Nominatim（公開APIの利用制限に従います）<br>単一HTML。初回の3Dライブラリ取得と地図データ取得にはインターネット接続が必要です。公開APIは混雑・通信制限で失敗する場合があります。</div>
+  </aside>
+</div>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
+
+const START={lat:38.2485213,lon:140.3266479,name:'山形駅 西口駅前広場'};
+const $=id=>document.getElementById(id);
+const state={...START,radius:280,style:'tone',data:null,buildings:0,roads:0,trees:0,loaded:false};
+const detailStats={windows:0,doors:0,taggedHeights:0,parts:0,roofs:0};
+let timer=0;
+let cityRoot = new THREE.Group(); cityRoot.name='OSM Yamagata City';
+const pieces={building:[],roof:[],road:[],sidewalk:[],roadEdge:[],roadMark:[],crossing:[],rail:[],grass:[],tree:[],outline:[],window:[],windowEdge:[],detail:[],door:[],water:[]};
+const canvas=$('scene');
+const scene=new THREE.Scene(); scene.background=new THREE.Color(0xf5f3eb); scene.fog=new THREE.Fog(0xf5f3eb,450,1300);
+const camera=new THREE.PerspectiveCamera(48,1,0.2,4000);
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false,preserveDrawingBuffer:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));renderer.outputColorSpace=THREE.SRGBColorSpace;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.4;
+const ambient=new THREE.HemisphereLight(0xffffff,0xc4b5a2,2.7);scene.add(ambient);
+const sunlight=new THREE.DirectionalLight(0xffffff,2.4);sunlight.position.set(260,480,320);scene.add(sunlight);
+scene.add(cityRoot);
+const groundMat=new THREE.MeshStandardMaterial({color:0xe9e9e1,roughness:1});
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(5000,5000),groundMat);ground.rotation.x=-Math.PI/2;ground.position.y=-0.1;scene.add(ground);
+const controls=new OrbitControls(camera,canvas);controls.enableDamping=true;controls.dampingFactor=.09;controls.maxDistance=1050;controls.minDistance=3;controls.maxPolarAngle=Math.PI*.495;controls.screenSpacePanning=true;
+const tmpV=new THREE.Vector3();
+const center=new THREE.Vector3(0,10,0);
+function setCameraView(type){
+  const dist=Math.max(100,Math.min(state.radius*.90,330));
+  if(type==='bird'){camera.position.set(-dist*.85,dist*.73,dist*.87);controls.target.set(0,9,0);}
+  if(type==='close'){camera.position.set(-96,60,94);controls.target.set(0,15,0);}
+  if(type==='top'){camera.position.set(0,Math.max(170,state.radius*1.6),.01);controls.target.set(0,0,0);}
+  if(type==='eye'){camera.position.set(-45,1.65,38);controls.target.set(40,7,-8);}
+  controls.update();
+}
+setCameraView('bird');
+function resize(){const rect=$('viewer').getBoundingClientRect(); const w=Math.max(2,Math.floor(rect.width));const h=Math.max(2,Math.floor(rect.height));renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
+new ResizeObserver(resize).observe($('viewer'));resize();
+const compassNeedle=$('compassNeedle');
+const worldNorth=new THREE.Vector3(0,0,-1);
+const compassBase=new THREE.Vector3();
+const compassTip=new THREE.Vector3();
+function updateCompass(){
+  camera.updateMatrixWorld();
+  compassBase.copy(controls.target).project(camera);
+  compassTip.copy(controls.target).addScaledVector(worldNorth,30).project(camera);
+  const dx=compassTip.x-compassBase.x,dy=compassTip.y-compassBase.y;
+  if(Math.hypot(dx,dy)>1e-6)compassNeedle.style.transform=`rotate(${Math.atan2(dx,dy)*180/Math.PI}deg)`;
+}
+function animate(){requestAnimationFrame(animate);controls.update();updateCompass();renderer.render(scene,camera)}animate();
+function toast(msg,ms=4600){$('toast').textContent=msg;$('toast').style.display='block';clearTimeout(timer);timer=setTimeout(()=>$('toast').style.display='none',ms)}
+function setBusy(b,title='',detail=''){$('busy').classList.toggle('show',b);if(title)$('busy-title').textContent=title;if(detail)$('busy-detail').textContent=detail;}
+function setStatus(s){$('loadstate').textContent=s}
+const mlat=lat=>111132*lat;
+// 方位規約：+X=東、-Z=北、+Y=上（右手座標系）。以前は北を+Zとして地図を鏡像化していた。
+function project(lat,lon){return [(lon-state.lon)*111320*Math.cos(state.lat*Math.PI/180),-(lat-state.lat)*111132]}
+function colorMat(color,extra={}){return new THREE.MeshStandardMaterial({color,roughness:1,metalness:0,...extra})}
+const materials={};
+const tones={};
+function makeToneTexture(){
+ const c=document.createElement('canvas');c.width=32;c.height=32;const x=c.getContext('2d');x.fillStyle='#fefefe';x.fillRect(0,0,32,32);x.fillStyle='#8c8c8c';
+ for(let i=0;i<4;i++)for(let j=0;j<4;j++){x.beginPath();x.arc(i*8+4,j*8+4,1.8,0,Math.PI*2);x.fill();}
+ const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(2,2);t.colorSpace=THREE.SRGBColorSpace;return t;
+}
+const toneTex=makeToneTexture();
+function registered(mesh,kind){mesh.userData.kind=kind;pieces[kind].push(mesh);cityRoot.add(mesh);return mesh}
+function randomColor(tags,id){let s=0;for(const c of String(id))s=(s*31+c.charCodeAt(0))|0;
+ const cols=[0xc8d0ce,0xe0d4bb,0xb6c0c0,0xe5e2d9,0xc9b7a6,0xc6cedc,0xded3c5,0xc4d4c8];
+ if(tags['building:colour']){try {return new THREE.Color(tags['building:colour']).getHex()}catch{}}
+ return cols[Math.abs(s)%cols.length];}
+// 高さがタグに存在するかを表示で区別する。形状不足時の推定は現実の高さを保証しない。
+function meters(v){if(v===null||v===undefined||v==='')return null;const n=parseFloat(String(v).replace(',','.'));return Number.isFinite(n)?n:null;}
+function buildingHeight(tags,id){
+ const height=meters(tags.height);if(height!==null&&height>2&&height<600)return height;
+ const levels=meters(tags['building:levels']);if(levels!==null&&levels>0&&levels<150)return levels*3.15+.5;
+ if(['garage','garages','shed','hut','roof'].includes(tags.building))return 3.2;
+ // 大規模施設を無条件で低層にしないが、未入力の高さはあくまで概算。
+ const seed=hashNumber(id);const typ=tags.building||'';
+ if(['commercial','retail','office','hotel'].includes(typ))return [10,13,16,19,22][seed%5];
+ return [6.8,9.5,12.5,15.5,18][seed%5];
+}
+function hashNumber(s){let h=2166136261;for(const c of String(s)){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0}
+function polygonArea(pts){return pts.reduce((v,p,i)=>v+p[0]*pts[(i+1)%pts.length][1]-pts[(i+1)%pts.length][0]*p[1],0)/2}
+function osmPoints(el){const raw=el.geometry;if(!raw||raw.length<3)return [];
+ const pts=raw.filter(p=>Number.isFinite(p.lat)&&Number.isFinite(p.lon)).map(p=>project(p.lat,p.lon));
+ if(pts.length>2&&Math.hypot(pts[0][0]-pts[pts.length-1][0],pts[0][1]-pts[pts.length-1][1])<.2)pts.pop();
+ return pts;
+}
+function mkPoly(points,y,material,kind){if(points.length<3)return;
+ const shape=new THREE.Shape();shape.moveTo(points[0][0],-points[0][1]);for(let i=1;i<points.length;i++)shape.lineTo(points[i][0],-points[i][1]);shape.closePath();
+ const geometry=new THREE.ShapeGeometry(shape);geometry.rotateX(-Math.PI/2);const mesh=new THREE.Mesh(geometry,material);mesh.position.y=y;registered(mesh,kind);return mesh;
+}
+// ファサードの窓をバッファへ集約して1回の描画負荷を抑える。
+let detailBuffer=null;
+function newDetailBuffer(){detailBuffer={fill:[],fillIdx:[],line:[],floor:[],door:[],doorIdx:[],doorLine:[]};detailStats.windows=0;detailStats.doors=0;detailStats.taggedHeights=0;detailStats.parts=0;detailStats.roofs=0}
+function seg(buffer,a,b){buffer.push(...a,...b)}
+function rectOnWall(buffer,edgeBuffer,center,right,halfW,lowY,height){
+ const bottomLeft=[center[0]-right[0]*halfW,lowY,center[1]-right[1]*halfW];
+ const bottomRight=[center[0]+right[0]*halfW,lowY,center[1]+right[1]*halfW];
+ const topRight=[bottomRight[0],lowY+height,bottomRight[2]];
+ const topLeft=[bottomLeft[0],lowY+height,bottomLeft[2]];
+ const idx=buffer.length/3;
+ buffer.push(...bottomLeft,...bottomRight,...topRight,...topLeft);
+ const indices=(buffer===detailBuffer.fill?detailBuffer.fillIdx:detailBuffer.doorIdx);
+ indices.push(idx,idx+1,idx+2,idx,idx+2,idx+3);
+ seg(edgeBuffer,bottomLeft,bottomRight);seg(edgeBuffer,bottomRight,topRight);seg(edgeBuffer,topRight,topLeft);seg(edgeBuffer,topLeft,bottomLeft);
+ return {bottomLeft,bottomRight,topRight,topLeft};
+}
+function addWindow(pts,side,center,low,width,height,detail){
+ if(detailStats.windows>=12000)return;
+ const a=pts[side],b=pts[(side+1)%pts.length],dx=b[0]-a[0],dz=b[1]-a[1],len=Math.hypot(dx,dz);
+ const sign=polygonArea(pts)>0?1:-1;
+ const ux=dx/len,uz=dz/len, nx=sign*uz,nz=-sign*ux;
+ const mid=[a[0]+dx*center+nx*.11,a[1]+dz*center+nz*.11];
+ const rect=rectOnWall(detailBuffer.fill,detailBuffer.line,mid,[ux,uz],width*.5,low,height);
+ if(detail!=='light'){
+  const leftMid=[(rect.bottomLeft[0]+rect.topLeft[0])*.5,low+height*.5,(rect.bottomLeft[2]+rect.topLeft[2])*.5];
+  const rightMid=[(rect.bottomRight[0]+rect.topRight[0])*.5,low+height*.5,(rect.bottomRight[2]+rect.topRight[2])*.5];
+  seg(detailBuffer.line,leftMid,rightMid);
+  if(detail==='rich'){
+   const lowerMid=[mid[0],low,mid[1]],upperMid=[mid[0],low+height,mid[1]];
+   seg(detailBuffer.line,lowerMid,upperMid);
+  }
+ }
+ detailStats.windows++;
+}
+function addDoor(pts,side,center,base,detail){
+ if(detailStats.doors>=2000)return;
+ const a=pts[side],b=pts[(side+1)%pts.length],dx=b[0]-a[0],dz=b[1]-a[1],len=Math.hypot(dx,dz);if(len<4)return;
+ const sign=polygonArea(pts)>0?1:-1,ux=dx/len,uz=dz/len,nx=sign*uz,nz=-sign*ux;
+ const mid=[a[0]+dx*center+nx*.13,a[1]+dz*center+nz*.13];
+ const shape=rectOnWall(detailBuffer.door,detailBuffer.doorLine,mid,[ux,uz],Math.min(1.1,len*.15),base+.07,2.25);
+ const c=[mid[0],base+.07,mid[1]],d=[mid[0],base+2.32,mid[1]];seg(detailBuffer.doorLine,c,d);
+ detailStats.doors++;
+}
+function addFacadeDetails(pts,base,facadeTop,roofHeight,tags,id){
+ const facadeHeight=facadeTop-base,quality=$('detailLevel').value;
+ if(facadeHeight<3.1)return;
+ const buildingType=tags.building||tags['building:part']||'';
+ if(['garage','garages','shed','roof','hut','greenhouse'].includes(buildingType))return;
+ const floorsTag=meters(tags['building:levels']);
+ const levels=floorsTag!==null&&floorsTag>0&&floorsTag<100?Math.max(1,Math.floor(floorsTag)):Math.max(1,Math.round(facadeHeight/3.15));
+ const levelsUsed=Math.min(80,levels);const floorH=facadeHeight/levelsUsed;
+ const density=quality==='light'?6.5:quality==='rich'?2.7:3.7;
+ let mostVisibleSide=-1,longest=0;
+ for(let i=0;i<pts.length;i++){
+  const p=pts[i],q=pts[(i+1)%pts.length];const dx=q[0]-p[0],dz=q[1]-p[1],length=Math.hypot(dx,dz);
+  if(length>longest){longest=length;mostVisibleSide=i}
+  if(length<3.4||length>500)continue;
+  const cols=Math.min(90,Math.max(1,Math.floor(length/density)));
+  const colWidth=length/cols;
+  const sign=polygonArea(pts)>0?1:-1,ux=dx/length,uz=dz/length,nx=sign*uz,nz=-sign*ux;
+  // 窓幅が壁全体をふさがないよう柱幅を確保。
+  const windowWidth=Math.min(quality==='rich'?2:2.4,colWidth*.67);
+  if(windowWidth<.45)continue;
+  const bottomOffset=Math.max(.4,Math.min(.95,floorH*.23));
+  const windowH=Math.max(.65,Math.min(floorH-bottomOffset-.35,floorH*.53));
+  for(let row=0;row<levelsUsed&&detailStats.windows<12000;row++){
+   const low=base+row*floorH+bottomOffset;
+   if(low+windowH>facadeTop-.18)continue;
+   for(let col=0;col<cols&&detailStats.windows<12000;col++){
+    if(row===0&&Math.abs(col-(cols-1)/2)<.7&&i===mostVisibleSide&&base<1)continue;
+    addWindow(pts,i,(col+.5)/cols,low,windowWidth,windowH,quality);
+   }
+  }
+  if(quality!=='light'&&facadeHeight>=6&&levelsUsed<=35){
+   // 庇・階層の横線をファサードの外に浮かせる（線画で見える）。
+   const f0=[p[0]+nx*.15,p[1]+nz*.15],f1=[q[0]+nx*.15,q[1]+nz*.15];
+   for(let row=1;row<levelsUsed;row++){
+    const levelY=base+row*floorH;
+    seg(detailBuffer.floor,[f0[0],levelY,f0[1]],[f1[0],levelY,f1[1]]);
+   }
+  }
+ }
+ if(base<.5&&mostVisibleSide>=0&&quality!=='light')addDoor(pts,mostVisibleSide,.5,base,quality);
+}
+function pushRoof(vertices,triangles,tags,buildingId){
+ const geom=new THREE.BufferGeometry();const positions=[];
+ for(const index of triangles)positions.push(...vertices[index]);
+ geom.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));geom.computeVertexNormals();
+ const col=tags['roof:colour']||tags['roof:color']||'#989691';
+ let materialColor=0x989691;try{materialColor=new THREE.Color(col).getHex()}catch{}
+ const roof=new THREE.Mesh(geom,colorMat(materialColor,{side:THREE.DoubleSide}));roof.userData.originalColor=materialColor;
+ registered(roof,'roof');
+ const edges=new THREE.LineSegments(new THREE.EdgesGeometry(geom,18),new THREE.LineBasicMaterial({color:0x242424}));registered(edges,'outline');
+ detailStats.roofs++;
+}
+function addRoof(pts,top,h,tags,id){
+ const kind=tags['roof:shape']||tags['building:roof:shape'];
+ if(!['pyramidal','gabled','hipped'].includes(kind))return 0;
+ let roofHeight=meters(tags['roof:height']);
+ if(roofHeight===null){const levels=meters(tags['roof:levels']);roofHeight=levels!==null?levels*2.6:Math.min(4.0,Math.sqrt(Math.abs(polygonArea(pts)))*.20);}
+ roofHeight=Math.min(Math.max(.5,roofHeight),h*.4);
+ const yBase=top-roofHeight;
+ if(kind==='pyramidal'&&pts.length>=3){
+  const mid=pts.reduce((a,p)=>[a[0]+p[0]/pts.length,a[1]+p[1]/pts.length],[0,0]);
+  const v=pts.map(p=>[p[0],yBase,p[1]]);v.push([mid[0],top,mid[1]]);const tri=[];
+  for(let i=0;i<pts.length;i++)tri.push(i,(i+1)%pts.length,pts.length);
+  pushRoof(v,tri,tags,id);return roofHeight;
+ }
+ if(pts.length!==4)return 0; // 切妻・寄棟は四角い屋根形状に限定。
+ let longest=0,edgeIndex=0;
+ for(let i=0;i<4;i++){const p=pts[i],q=pts[(i+1)%4],len=Math.hypot(q[0]-p[0],q[1]-p[1]);if(len>longest){longest=len;edgeIndex=i}}
+ const a=pts[edgeIndex],b=pts[(edgeIndex+1)%4],c=pts[(edgeIndex+2)%4],d=pts[(edgeIndex+3)%4];
+ const near=[(a[0]+d[0])/2,(a[1]+d[1])/2],far=[(b[0]+c[0])/2,(b[1]+c[1])/2];
+ const amount=kind==='hipped'?.23:0;
+ const ridge0=[near[0]*(1-amount)+far[0]*amount,top,near[1]*(1-amount)+far[1]*amount];
+ const ridge1=[near[0]*amount+far[0]*(1-amount),top,near[1]*amount+far[1]*(1-amount)];
+ const v=[[a[0],yBase,a[1]],[b[0],yBase,b[1]],[c[0],yBase,c[1]],[d[0],yBase,d[1]],ridge0,ridge1];
+ pushRoof(v,[0,1,5,0,5,4,1,2,5,2,3,4,2,4,5,3,0,4],tags,id);
+ // 切妻の端面は壁と同じ色の三角を入れる。
+ if(kind==='gabled'){
+  const gw=new THREE.BufferGeometry();gw.setAttribute('position',new THREE.Float32BufferAttribute([...v[3],...v[0],...ridge0,...v[1],...v[2],...ridge1],3));gw.computeVertexNormals();
+  const mat=colorMat(randomColor(tags,id),{side:THREE.DoubleSide});const gm=new THREE.Mesh(gw,mat);gm.userData.originalColor=mat.color.getHex();registered(gm,'building');
+ }
+ return roofHeight;
+}
+function mkBuilding(el){
+ const tags=el.tags||{},pts=osmPoints(el);
+ if(pts.length<3)return false;
+ const area=Math.abs(polygonArea(pts));if(area<4||area>130000)return false;
+ const h=buildingHeight(tags,el.id);
+ const minHeight=meters(tags.min_height);const minLevel=meters(tags['building:min_level']);
+ const base=Math.max(0,Math.min(120,minHeight!==null?minHeight:(minLevel||0)*3.15));
+ if(h<=base+.3)return false;
+ const shape=new THREE.Shape();shape.moveTo(pts[0][0],-pts[0][1]);for(let i=1;i<pts.length;i++)shape.lineTo(pts[i][0],-pts[i][1]);shape.closePath();
+ // 描画前に屋根の高さを決め、建物本体の壁面が屋根を突き抜けないようにする。
+ const roofH=addRoof(pts,h,h-base,tags,el.id);
+ const top=h-roofH;
+ const geo=new THREE.ExtrudeGeometry(shape,{depth:top-base,bevelEnabled:false,curveSegments:1,steps:1});geo.rotateX(-Math.PI/2);
+ const mat=colorMat(randomColor(tags,el.id),{side:THREE.DoubleSide});const mesh=new THREE.Mesh(geo,mat);
+ mesh.position.y=base;mesh.userData.osmId=el.id;mesh.userData.originalColor=mat.color.getHex();registered(mesh,'building');
+ const outline=new THREE.LineSegments(new THREE.EdgesGeometry(geo,25),new THREE.LineBasicMaterial({color:0x1e242a,transparent:true,opacity:1}));outline.position.y=base;registered(outline,'outline');
+ if(meters(tags.height)!==null||meters(tags['building:levels'])!==null)detailStats.taggedHeights++;
+ if(tags['building:part'])detailStats.parts++;
+ addFacadeDetails(pts,base,top,roofH,tags,el.id);
+ return true;
+}
+function flushDetails(){
+ function meshFrom(pos,indices,kind,color){if(!indices.length)return;
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setIndex(indices);g.computeVertexNormals();registered(new THREE.Mesh(g,colorMat(color,{side:THREE.DoubleSide})),kind)}
+ function linesFrom(pos,kind,color){if(!pos.length)return;
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));registered(new THREE.LineSegments(g,new THREE.LineBasicMaterial({color})),kind)}
+ meshFrom(detailBuffer.fill,detailBuffer.fillIdx,'window',0x586677);
+ meshFrom(detailBuffer.door,detailBuffer.doorIdx,'door',0x7c929f);
+ linesFrom(detailBuffer.line,'windowEdge',0x333536);
+ linesFrom(detailBuffer.doorLine,'windowEdge',0x303437);
+ linesFrom(detailBuffer.floor,'detail',0x5c6369);
+ detailBuffer=null;
+}
+function pointInPolygon(point,polygon){let inside=false;for(let i=0,j=polygon.length-1;i<polygon.length;j=i++){
+ const x=point[0],y=point[1],a=polygon[i],b=polygon[j];if(((a[1]>y)!==(b[1]>y))&&(x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0]))inside=!inside;
+ }return inside;}
+function ribbon(points,width,material,kind,y=.04,offset=0){if(points.length<2)return;
+ const v=[],ids=[];let i=0;
+ for(let k=0;k<points.length-1;k++){
+  const a=points[k],b=points[k+1],dx=b[0]-a[0],dz=b[1]-a[1],len=Math.hypot(dx,dz);if(len<.05)continue;
+  const nx=-dz/len,nz=dx/len,half=width/2;
+  const aX=a[0]+nx*offset,aZ=a[1]+nz*offset,bX=b[0]+nx*offset,bZ=b[1]+nz*offset;
+  v.push(aX+nx*half,y,aZ+nz*half,aX-nx*half,y,aZ-nz*half,bX+nx*half,y,bZ+nz*half,bX-nx*half,y,bZ-nz*half);
+  ids.push(i,i+2,i+1,i+1,i+2,i+3);i+=4;
+ }
+ if(!ids.length)return;const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(v,3));geo.setIndex(ids);geo.computeVertexNormals();registered(new THREE.Mesh(geo,material),kind);
+}
+function roadWidth(tags){if(tags.width&&Number.isFinite(parseFloat(tags.width)))return Math.max(1,Math.min(28,parseFloat(tags.width)));
+ const t=tags.highway;return ({motorway:21,trunk:17,primary:13,secondary:12,tertiary:10,residential:6.6,unclassified:6,service:4.6,footway:2.2,pedestrian:7,cycleway:2.5,path:1.7,steps:2.3,living_street:5})[t]||5;}
+const matRoad=colorMat(0x858e93,{side:THREE.DoubleSide}),matPath=colorMat(0xcabeb0,{side:THREE.DoubleSide}),matSidewalk=colorMat(0xd6cdc0,{side:THREE.DoubleSide}),matRoadEdge=colorMat(0x3d4348,{side:THREE.DoubleSide}),matRoadMark=colorMat(0xf4f1e8,{side:THREE.DoubleSide}),matCrossing=colorMat(0xf9f7f2,{side:THREE.DoubleSide}),matTrack=colorMat(0x7c7169,{side:THREE.DoubleSide}),matRail=colorMat(0x4c5258,{side:THREE.DoubleSide}),matPark=colorMat(0x91ae8c,{side:THREE.DoubleSide}),matWater=colorMat(0x7cbed7,{side:THREE.DoubleSide});
+function stripeRibbon(points,width,material,kind,y=.09,offset=0,dash=4.5,gap=4.2){if(points.length<2)return;
+ const v=[],ids=[];let i=0;
+ for(let k=0;k<points.length-1;k++){
+  const a=points[k],b=points[k+1],dx=b[0]-a[0],dz=b[1]-a[1],len=Math.hypot(dx,dz);if(len<.2)continue;
+  const nx=-dz/len,nz=dx/len,half=width/2;
+  for(let d=0;d<len;d+=dash+gap){
+   const s=d,e=Math.min(len,d+dash);if(e-s<.25)continue;
+   const t0=s/len,t1=e/len;
+   const p0x=a[0]+dx*t0+nx*offset,p0z=a[1]+dz*t0+nz*offset,p1x=a[0]+dx*t1+nx*offset,p1z=a[1]+dz*t1+nz*offset;
+   v.push(p0x+nx*half,y,p0z+nz*half,p0x-nx*half,y,p0z-nz*half,p1x+nx*half,y,p1z+nz*half,p1x-nx*half,y,p1z-nz*half);
+   ids.push(i,i+2,i+1,i+1,i+2,i+3);i+=4;
+  }
+ }
+ if(!ids.length)return;const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(v,3));geo.setIndex(ids);geo.computeVertexNormals();registered(new THREE.Mesh(geo,material),kind);
+}
+function addCrossing(points,roadW){
+ if(points.length<2)return;
+ let total=0;for(let i=0;i<points.length-1;i++)total+=Math.hypot(points[i+1][0]-points[i][0],points[i+1][1]-points[i][1]);
+ if(total<2||total>28)return;
+ const first=points[0],last=points[points.length-1],dx=last[0]-first[0],dz=last[1]-first[1],len=Math.hypot(dx,dz);if(len<.2)return;
+ const ux=dx/len,uz=dz/len,nx=-uz,nz=ux;const center=[(first[0]+last[0])*.5,(first[1]+last[1])*.5];
+ const stripeLen=Math.min(total*.72,5.2),stripeW=Math.min(Math.max(roadW*.14,.36),.72),spread=Math.min(Math.max(roadW*.78,2.6),roadW+2.6);
+ const count=Math.max(4,Math.min(9,Math.round(spread/0.62)));
+ for(let i=0;i<count;i++){
+  const o=(-spread/2)+(i/(count-1))*spread;
+  const c=[center[0]+nx*o,center[1]+nz*o];
+  const a=[c[0]-ux*stripeLen/2,c[1]-uz*stripeLen/2],b=[c[0]+ux*stripeLen/2,c[1]+uz*stripeLen/2];
+  ribbon([a,b],stripeW,matCrossing,'crossing',.10);
+ }
+}
+function mkRoad(el){const pts=(el.geometry||[]).map(p=>project(p.lat,p.lon));if(pts.length<2)return false;
+ const tags=el.tags||{},type=tags.highway||'',path=/footway|pedestrian|cycleway|path|steps/.test(type),width=roadWidth(tags),sidewalk=String(tags.sidewalk||'').toLowerCase(),pedArea=type==='pedestrian';
+ if(path){
+  ribbon(pts,width,matPath,'road',.07);
+  ribbon(pts,.14,matRoadEdge,'roadEdge',.092,width/2);
+  ribbon(pts,.14,matRoadEdge,'roadEdge',.092,-width/2);
+  if(tags.footway==='crossing'||tags.crossing) addCrossing(pts,Math.max(4.6,width*2.2));
+  return true;
+ }
+ const driveWidth=Math.max(width,pedArea?5.2:4.4);
+ if(sidewalk!=='no'&&type!=='service'){
+  const sw=type==='living_street'||pedArea?1.0:1.25;
+  if(sidewalk!=='right'&&!pedArea){ribbon(pts,sw,matSidewalk,'sidewalk',.068,driveWidth/2+sw/2+.18)}
+  if(sidewalk!=='left'&&!pedArea){ribbon(pts,sw,matSidewalk,'sidewalk',.068,-driveWidth/2-sw/2-.18)}
+  if(pedArea){ribbon(pts,Math.max(1.1,driveWidth*.12),matRoadMark,'roadMark',.088,0,)}
+ }
+ ribbon(pts,driveWidth,matRoad,'road',.075);
+ ribbon(pts,.18,matRoadEdge,'roadEdge',.094,driveWidth/2);
+ ribbon(pts,.18,matRoadEdge,'roadEdge',.094,-driveWidth/2);
+ if(driveWidth>=6&&type!=='service'){
+  if(type==='primary'||type==='secondary'||type==='tertiary'||type==='trunk'||type==='motorway') stripeRibbon(pts,.22,matRoadMark,'roadMark',.096,0,6.2,3.0);
+  else stripeRibbon(pts,.15,matRoadMark,'roadMark',.096,0,2.8,4.0);
+ }
+ return true;
+}
+function mkRail(el){const pts=(el.geometry||[]).map(p=>project(p.lat,p.lon));if(pts.length<2)return false;
+ ribbon(pts,3.2,matTrack,'rail',.077);ribbon(pts,.16,matRail,'rail',.10,-.77);ribbon(pts,.16,matRail,'rail',.10,.77);return true;
+}
+function mkTree(lat,lon,id){const [x,z]=project(lat,lon);if(Math.abs(x)>state.radius*1.5||Math.abs(z)>state.radius*1.5)return;
+ const height=4+(Math.abs(Number(id)||0)%55)/10;const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.14,.22,height*.5,5),colorMat(0x7b6551));trunk.position.set(x,height*.25,z);registered(trunk,'tree');
+ const leaves=new THREE.Mesh(new THREE.IcosahedronGeometry(height*.31,0),colorMat(0x709179));leaves.position.set(x,height*.67,z);registered(leaves,'tree');}
+function clearCity(){for(const key of Object.keys(pieces)){for(const obj of pieces[key]){
+ obj.parent?.remove(obj);obj.geometry?.dispose();
+ if(!['road','sidewalk','roadEdge','roadMark','crossing','rail','grass','water'].includes(key))obj.material?.dispose?.();
+ }pieces[key].length=0;}}
+function buildWorld(elements,preserveCamera=false){
+ const savedPosition=camera.position.clone(),savedTarget=controls.target.clone();
+ clearCity();newDetailBuffer();let buildings=0,roads=0,trees=0,railways=0;
+ const park=[],road=[],rail=[],building=[],parts=[],nodes=[];
+ for(const el of elements){const t=el.tags||{};
+  if(el.type==='node'&&t.natural==='tree')nodes.push(el);
+  else if(el.type==='way'){
+   if(t['building:part']&&t['building:part']!=='no')parts.push(el);
+   else if(t.building&&t.building!=='no')building.push(el);
+   else if(t.highway)road.push(el);
+   else if(t.railway&&['rail','tram','light_rail'].includes(t.railway))rail.push(el);
+   else if(t.leisure==='park'||t.landuse==='grass'||t.natural==='water')park.push(el);
+  }
+ }
+ // OSM の建物部分は全体の輪郭より優先（重なった二重の箱を避ける）。
+ // 一部分しか記録されていない建物は元の輪郭も残す。
+ const partPolys=parts.map(p=>({pts:osmPoints(p),id:p.id})).filter(p=>p.pts.length>=3);
+ let suppressed=0;
+ const visibleBuildings=building.filter(b=>{
+  const outline=osmPoints(b);if(outline.length<3)return true;
+  const parentArea=Math.abs(polygonArea(outline));if(parentArea<1)return true;
+  let coverage=0;
+  for(const part of partPolys){const center=part.pts.reduce((v,p)=>[v[0]+p[0]/part.pts.length,v[1]+p[1]/part.pts.length],[0,0]);
+   if(pointInPolygon(center,outline))coverage+=Math.abs(polygonArea(part.pts));
+  }
+  if(coverage>parentArea*.68){suppressed++;return false}return true;
+ });
+ for(const e of park){const pts=osmPoints(e);if(pts.length<3)continue;const kind=e.tags?.natural==='water'?'water':'grass';mkPoly(pts,.017,kind==='water'?matWater:matPark,kind)}
+ for(const e of road)if(mkRoad(e))roads++;
+ for(const e of rail)if(mkRail(e))railways++;
+ for(const e of [...visibleBuildings,...parts])if(mkBuilding(e))buildings++;
+ flushDetails();
+ for(const e of nodes.slice(0,250)){mkTree(e.lat,e.lon,e.id);trees++}
+ state.buildings=buildings;state.roads=roads;state.trees=trees;state.loaded=true;state.data=elements;
+ $('buildingCount').textContent=buildings.toLocaleString();$('roadCount').textContent=roads.toLocaleString();$('treeCount').textContent=trees.toLocaleString();
+ $('featurecount').textContent=`建物 ${buildings} · 窓 ${detailStats.windows.toLocaleString()} · 線路 ${railways}`;
+ $('buildingInfo').textContent=`生成した窓 ${detailStats.windows.toLocaleString()}個 ／ 入口 ${detailStats.doors} ／ OSMに高さ・階数情報あり ${detailStats.taggedHeights}/${buildings}棟 ／ 建物部分 ${detailStats.parts}件 ／ 立体屋根 ${detailStats.roofs}件`;
+ applyStyle();
+ if(preserveCamera){camera.position.copy(savedPosition);controls.target.copy(savedTarget);controls.update()}
+ else setCameraView('bird');
+}
+function applyStyle(){const style=state.style,shade=Number($('shade').value)/100;
+ const line=(style==='line'||style==='tone'||style==='colorline');
+ const palettes={
+  color:{building:0xffffff,road:0x7f888d,sidewalk:0xd6cdc0,ground:0xe9e9e1,park:0x91ae8c,tree:0x709179,window:0x566779,mark:0xf3efe4,edge:0x525a61},
+  colorline:{building:0xffffff,road:0x8f999f,sidewalk:0xd9d1c5,ground:0xeae9e0,park:0x91ae8c,tree:0x709179,window:0x566779,mark:0xfbfbf6,edge:0x43484d},
+  line:{building:0xffffff,road:0xffffff,sidewalk:0xffffff,ground:0xffffff,park:0xffffff,tree:0xffffff,window:0xffffff,mark:0x222222,edge:0x1f1f1f},
+  tone:{building:0xffffff,road:0xe1dfd9,sidewalk:0xf2eee4,ground:0xfffefa,park:0xf1f1ee,tree:0xe0e0dc,window:0x777777,mark:0xb4afa3,edge:0x4a4a4a}
+ };
+ const pal=palettes[style];
+ groundMat.color.setHex(pal.ground);
+ if(style==='tone'){
+  scene.background=new THREE.Color(0xfffefa);scene.fog.color.setHex(0xfffefa);
+ } else if(style==='line'){scene.background=new THREE.Color(0xffffff);scene.fog.color.setHex(0xffffff)}
+ else{const sky=$('sky').value;const bg=sky==='blue'?0xc5e3f4:sky==='gray'?0xc9d0d4:0xf3f0e8;scene.background=new THREE.Color(bg);scene.fog.color.setHex(bg)}
+ matRoad.color.setHex(pal.road);matPath.color.setHex(style==='line'?0xffffff:style==='tone'?0xf7f4ec:0xcabeb0);matSidewalk.color.setHex(pal.sidewalk);matRoadEdge.color.setHex(pal.edge);matRoadMark.color.setHex(pal.mark);matCrossing.color.setHex(style==='line'?0x222222:style==='tone'?0xf7f3ea:0xfaf8f2);
+ matTrack.color.setHex(style==='line'?0xffffff:0x888580);matRail.color.setHex(style==='line'?0x222222:0x505358);
+ matPark.color.setHex(pal.park);matWater.color.setHex(style==='line'?0xffffff:0x9acbd6);
+ for(const mesh of pieces.building){mesh.material.color.setHex(style==='color'||style==='colorline'?mesh.userData.originalColor:0xffffff);
+  if(style==='tone'){mesh.material.color.setHex(0xefefed);mesh.material.map=toneTex;mesh.material.transparent=false;mesh.material.roughness=1}
+  else{mesh.material.map=null;mesh.material.roughness=1}
+  mesh.material.needsUpdate=true;
+ }
+ for(const mesh of pieces.roof){mesh.material.color.setHex(style==='color'||style==='colorline'?mesh.userData.originalColor:style==='tone'?0xe4e3e0:0xffffff)}
+ for(const m of pieces.outline){m.visible=line;m.material.opacity=style==='colorline'?.7:1;m.material.color.setHex(style==='tone'?0x151515:0x22252a)}
+ for(const m of pieces.window){m.visible=$('showWindows').checked&&style!=='line';m.material.color.setHex(pal.window)}
+ // 線画でも窓枠を表示。以前は窓そのものを丸ごと隠していた。
+ for(const m of pieces.windowEdge){m.visible=$('showWindows').checked;m.material.color.setHex(style==='tone'||style==='line'?0x292929:0x34414a)}
+ for(const m of pieces.detail){m.visible=$('showWindows').checked&&style!=='color';m.material.color.setHex(style==='tone'||style==='line'?0x777777:0x7b8086)}
+ for(const m of pieces.door){m.visible=$('showWindows').checked&&style!=='line';m.material.color.setHex(style==='tone'?0x9f9f9f:0x6a7b89)}
+ for(const m of pieces.tree){m.visible=$('showTrees').checked;m.material.color.setHex(style==='line'?0xffffff:style==='tone'?0xdddddd:(m.geometry.type==='CylinderGeometry'?0x7b6551:0x709179))}
+ for(const m of pieces.sidewalk){m.visible=true}
+ for(const m of pieces.roadEdge){m.visible=true}
+ for(const m of pieces.roadMark){m.visible=style!=='line'}
+ for(const m of pieces.crossing){m.visible=true;m.material.opacity=style==='line'?1:.95;m.material.transparent=style!=='line'}
+ for(const m of pieces.rail){m.visible=$('showRails').checked}
+ ambient.intensity=style==='line'?3.0:2.7;sunlight.intensity=style==='line'?.15:style==='tone'?shade*1.5:1.7;
+ $('shadeValue').textContent=Math.round(shade*100)+'%';
+ for(const btn of document.querySelectorAll('#styles [data-style]'))btn.classList.toggle('active',btn.dataset.style===style);
+}
+function mapLink(){const gap=0.0045;const b=[state.lon-gap,state.lat-gap*.7,state.lon+gap,state.lat+gap*.7].join('%2C');return `https://www.openstreetmap.org/export/embed.html?bbox=${b}&layer=mapnik&marker=${state.lat}%2C${state.lon}`}
+function updatePlaceUI(){
+ $('lat').value=state.lat;$('lon').value=state.lon;$('radius').value=state.radius;
+ $('placetag').innerHTML='';$('placetag').append(document.createTextNode(state.name));const small=document.createElement('small');small.textContent=`山形市付近 · ${state.lat.toFixed(7)}, ${state.lon.toFixed(7)}`;$('placetag').append(small);
+ $('minimap').src=mapLink();const hash=`ll=${state.lat.toFixed(7)},${state.lon.toFixed(7)}&s=${state.radius}&n=${encodeURIComponent(state.name)}`;history.replaceState(null,'','#'+hash);
+}
+function safeCacheRead(key){try{const s=localStorage.getItem(key);if(!s)return null;const x=JSON.parse(s);if(Date.now()-x.time>24*3600*1000)return null;return x.elements}catch{return null}}
+function safeCacheWrite(key,elements){try{localStorage.setItem(key,JSON.stringify({time:Date.now(),elements}));}catch{/* Storage unavailable */}}
+let activeLoad=0;
+// 2026年時点の公開Overpass API。旧 overpass.kumi.systems は private.coffee に移行。
+// APIへの問い合わせは並列化せず、サーバーへの負荷を抑えて順番に行う。
+const OVERPASS_SERVERS=[
+ {id:'private',name:'private.coffee',url:'https://overpass.private.coffee/api/interpreter'},
+ {id:'mail',name:'VK Maps',url:'https://maps.mail.ru/osm/tools/overpass/api/interpreter'},
+ {id:'main',name:'overpass-api.de',url:'https://overpass-api.de/api/interpreter'}
+];
+function serverChoices(){
+ const selected=$('osmServer').value;
+ if(selected==='auto')return OVERPASS_SERVERS;
+ return OVERPASS_SERVERS.filter(s=>s.id===selected);
+}
+function describeNetworkError(e){
+ if(e?.name==='AbortError')return '応答がタイムアウトしました';
+ if(e instanceof TypeError)return '通信できません（ネット接続、CORS、広告ブロックなどを確認）';
+ return e?.message||String(e);
+}
+async function fetchOverpass(query){
+ const errors=[];
+ const servers=serverChoices();
+ for(let i=0;i<servers.length;i++){
+  const server=servers[i];
+  const ctrl=new AbortController();
+  const timeout=setTimeout(()=>ctrl.abort(),24000);
+  setStatus(`接続中 ${i+1}/${servers.length}`);
+  $('networkInfo').textContent=`${server.name} に接続中（${i+1}/${servers.length}）…`;
+  setBusy(true,'山形駅周辺の地図データを取得中',`${server.name} に問い合わせています。失敗すると次の取得先を試します。`);
+  try{
+   const resp=await fetch(server.url,{
+    method:'POST',
+    // ヘッダーを追加しないことでCORSの事前確認通信を避ける。
+    body:'data='+encodeURIComponent(query),
+    signal:ctrl.signal,
+    mode:'cors',credentials:'omit'
+   });
+   if(!resp.ok)throw new Error(`HTTP ${resp.status} ${resp.statusText}`.trim());
+   const result=await resp.json();
+   if(!Array.isArray(result?.elements))throw new Error('APIの応答がJSON地図データではありません');
+   $('networkInfo').textContent=`取得成功：${server.name} ／ ${result.elements.length.toLocaleString()}件`;
+   return result.elements;
+  }catch(e){
+   const reason=describeNetworkError(e);
+   errors.push(`${server.name}: ${reason}`);
+   console.warn('Overpass取得エラー',server.name,e);
+   $('networkInfo').textContent=`取得失敗：${server.name}（${reason}）${i+1<servers.length?'。別サーバーで再試行します':''}`;
+  }finally{clearTimeout(timeout)}
+ }
+ throw new Error(errors.join(' / '));
+}
+async function loadCity(){
+ const id=++activeLoad;const lat=Number($('lat').value),lon=Number($('lon').value),radius=Number($('radius').value);
+ if(!Number.isFinite(lat)||lat<-90||lat>90||!Number.isFinite(lon)||lon<-180||lon>180){toast('緯度・経度の入力を確認してください');return}
+ state.lat=lat;state.lon=lon;state.radius=radius;state.loaded=false;updatePlaceUI();
+ setBusy(true,'実際の街並みを読み込み中','OpenStreetMapの建物・道路を取得しています。公開APIの混雑時には時間がかかる場合があります。');setStatus('データを取得中');
+ const cacheKey=`cityscout:v3:${lat.toFixed(5)},${lon.toFixed(5)},${radius}`;
+ try {
+  let elements=safeCacheRead(cacheKey);
+  const fromCache=!!elements;
+  if(!elements){const point=`(around:${radius},${lat},${lon})`;
+    const query=`[out:json][timeout:40];(way["building"]${point};way["building:part"]${point};way["highway"]${point};way["railway"]${point};way["leisure"="park"]${point};way["landuse"="grass"]${point};way["natural"="water"]${point};node["natural"="tree"]${point};);out geom;`;
+    try{elements=await fetchOverpass(query);safeCacheWrite(cacheKey,elements)}
+    catch(e){
+     const oldKey=`cityscout:v1:${lat.toFixed(5)},${lon.toFixed(5)},${radius}`;
+     elements=safeCacheRead(oldKey);
+     if(!elements)throw e;
+     $('networkInfo').textContent='新しい地図データの取得に失敗したため、前回の保存データから3Dを生成しました。建物部分の情報は未取得です。';
+    }
+  }
+  if(id!==activeLoad)return;
+  if(elements.length===0)throw new Error('この範囲には地図データがありません');
+  if(fromCache)$('networkInfo').textContent=`キャッシュから読み込み：${elements.length.toLocaleString()}件`;
+  buildWorld(elements);setStatus('読み込み完了');toast('街並みの3D生成が完了しました');
+ } catch(e){if(id!==activeLoad)return;setStatus('取得エラー');toast('読み込みに失敗しました。詳しい内容は「取得先」の下に表示しています。',8500);$('networkInfo').textContent='エラー：'+e.message+'。接続先を変更するか、範囲を180mにして再試行してください。';console.error(e);
+ } finally{if(id===activeLoad)setBusy(false)}
+}
+async function searchPlace(){const q=$('searchText').value.trim();if(!q){toast('地名か緯度経度を入力してください');return}
+ const match=q.match(/^\s*(-?\d+(?:\.\d+)?)\s*[,， ]\s*(-?\d+(?:\.\d+)?)\s*$/);
+ if(match){$('lat').value=match[1];$('lon').value=match[2];state.name='指定した座標';await loadCity();return}
+ if(/山形駅.*西口|西口.*山形駅/.test(q)){resetToStart();return}
+ setBusy(true,'場所を検索中','Nominatimで地名・住所を検索しています。');
+ try{const r=await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=3&accept-language=ja&q='+encodeURIComponent(q));if(!r.ok)throw new Error('HTTP '+r.status);
+ const data=await r.json();if(!data.length)throw new Error('場所が見つかりません');const p=data[0];state.name=(p.display_name||q).split(',').slice(0,2).join(',');$('lat').value=p.lat;$('lon').value=p.lon;await loadCity();}
+ catch(e){toast('地名検索エラー：'+e.message,6000);setBusy(false)}
+}
+function resetToStart(){$('lat').value=START.lat;$('lon').value=START.lon;$('radius').value=280;$('searchText').value='山形駅 西口';state.name=START.name;loadCity()}
+function turnCam(angle){const vec=camera.position.clone().sub(controls.target);vec.applyAxisAngle(new THREE.Vector3(0,1,0),angle);camera.position.copy(controls.target).add(vec);controls.update()}
+function saveFile(blob,name){const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download=name;document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),15000)}
+function pngSave(){if(!state.loaded){toast('地図の読み込み後に画像を書き出せます');return}
+ renderer.render(scene,camera);const im=new Image();im.onload=()=>{const c=document.createElement('canvas');c.width=im.width;c.height=im.height;const cx=c.getContext('2d');cx.drawImage(im,0,0);
+ const fs=Math.max(12,Math.round(c.width*.012));cx.font=`${fs}px sans-serif`;cx.textAlign='right';const label='© OpenStreetMap contributors';const measure=cx.measureText(label).width;cx.fillStyle='#ffffffcc';cx.fillRect(c.width-measure-21,c.height-fs-16,measure+13,fs+12);cx.fillStyle='#172631';cx.fillText(label,c.width-15,c.height-15);
+ c.toBlob(blob=>{if(blob)saveFile(blob,'cityscout-yamagata-west.png');else toast('PNGへの変換に失敗しました')},'image/png')};im.onerror=()=>toast('画像の生成に失敗しました');im.src=renderer.domElement.toDataURL('image/png')}
+async function glbSave(){if(!state.loaded){toast('地図の読み込み後にGLBを書き出せます');return}
+ setBusy(true,'GLBモデルを書き出し中','表示中の街の3D形状を変換しています。');
+ try{const exporter=new GLTFExporter();const result=await exporter.parseAsync(cityRoot,{binary:true,onlyVisible:true,truncateDrawRange:true});saveFile(new Blob([result],{type:'model/gltf-binary'}),'cityscout-yamagata-west.glb');toast('GLBを書き出しました')}
+ catch(e){console.error(e);toast('GLBの出力に失敗しました：'+e.message,6500)}finally{setBusy(false)}
+}
+function setLens(mm){camera.fov=THREE.MathUtils.radToDeg(2*Math.atan(36/(2*Number(mm))));camera.updateProjectionMatrix()}
+$('osmServer').addEventListener('change',()=>{$('networkInfo').textContent='取得先を切り替えました。「この範囲を生成」で再試行できます';});
+$('detailLevel').addEventListener('change',()=>{if(state.data){setStatus('外観を再生成中');buildWorld(state.data,true);setStatus('読み込み完了')}});
+$('searchBtn').addEventListener('click',searchPlace);$('searchText').addEventListener('keydown',e=>{if(e.key==='Enter')searchPlace()});$('loadBtn').addEventListener('click',loadCity);
+$('resetPlace').addEventListener('click',resetToStart);
+$('birdView').addEventListener('click',()=>setCameraView('bird'));$('closeView').addEventListener('click',()=>setCameraView('close'));$('topView').addEventListener('click',()=>setCameraView('top'));$('eyeView').addEventListener('click',()=>setCameraView('eye'));$('camReset').addEventListener('click',()=>setCameraView('bird'));
+$('turnLeft').addEventListener('click',()=>turnCam(-Math.PI/12));$('turnRight').addEventListener('click',()=>turnCam(Math.PI/12));
+$('styles').addEventListener('click',e=>{const btn=e.target.closest('[data-style]');if(!btn)return;state.style=btn.dataset.style;applyStyle()});
+for(const id of ['shade','showWindows','showTrees','showRails','sky'])$(id).addEventListener('input',applyStyle);
+$('lens').addEventListener('change',e=>setLens(e.target.value));$('savePng').addEventListener('click',pngSave);$('saveGlb').addEventListener('click',glbSave);
+$('openOsm').addEventListener('click',()=>window.open(`https://www.openstreetmap.org/?mlat=${state.lat}&mlon=${state.lon}#map=17/${state.lat}/${state.lon}`,'_blank','noopener,noreferrer'));
+$('copyLink').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(location.href);toast('共有リンクをコピーしました')}catch{toast('この環境ではコピーできません。アドレスバーのURLをご利用ください')}});
+let hash;try{hash=new URLSearchParams(decodeURIComponent(location.hash.replace(/^#/,'')))}catch{}
+if(hash?.has('ll')){const coords=(hash.get('ll')||'').split(',').map(Number);if(coords.length===2&&coords.every(Number.isFinite)){$('lat').value=coords[0];$('lon').value=coords[1];state.name=hash.get('n')||'指定した座標'}if([180,280,450,650].includes(Number(hash.get('s'))))$('radius').value=hash.get('s')}
+setLens($('lens').value);updatePlaceUI();loadCity();
+</script>
+</body>
+</html>
