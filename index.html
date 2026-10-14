@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#101927">
-  <title>街並みスケッチ 3D v0.7.3 | 山形駅西口</title>
+  <title>街並みスケッチ 3D v0.7.4 | 山形駅西口</title>
   <meta name="description" content="OpenStreetMapの建物・道路をブラウザで3D化。山形駅西口から街並みの線画、マンガ調の背景画像やGLBを作成できます。">
   <style>
     :root { color-scheme: dark; --bg:#0b111b; --panel:#111c2b; --panel2:#182638; --line:#2b3c51; --text:#edf3fc; --muted:#9bacbf; --accent:#71e0bc; --cyan:#82c9f7; --orange:#ffc875; }
@@ -73,15 +73,32 @@
     #fpsNotice{position:absolute;left:12%;right:12%;top:20%;text-align:center;font-size:clamp(17px,3vw,28px);font-weight:900;color:#194d9b;text-shadow:2px 2px #f7f3e7}
     #fpsHurt{position:absolute;inset:0;box-shadow:inset 0 0 140px #e03e3e;opacity:0;transition:opacity .1s}
     #fpsMenu{position:absolute;inset:0;z-index:6;background:#f7f3e7b9;backdrop-filter:blur(5px);display:grid;place-items:center;padding:18px}
-    .fps-menu-card{background:repeating-linear-gradient(0deg,#faf7ec 0 31px,#cad7e4 32px,#faf7ec 33px);border:3px solid #194d9b;box-shadow:9px 9px 0 #194d9b2e;color:#194d9b;width:min(590px,100%);padding:27px 30px;transform:rotate(-.4deg)}
-    .fps-menu-card h2{font-size:clamp(27px,6vw,46px);letter-spacing:-.04em;color:#194d9b;display:block;margin:8px 0}
-    /* Hand-drawn INKBOUND logo. Only the logo tilts; the searched place stays readable. */
-    .fps-menu-card h2.fps-game-title{margin:20px 0 16px;overflow:visible;line-height:1.12}
-    .fps-menu-card .fps-game-title .fps-logo{font-family:Impact,"Arial Black",ui-sans-serif,sans-serif;font-weight:1000;font-style:italic;font-size:clamp(40px,8vw,74px);letter-spacing:-.065em;display:inline-block;line-height:1.14;position:relative;transform:rotate(-3.2deg) skewX(-7deg);transform-origin:left center;text-shadow:3px 4px 0 #b6c7d9,-1px -1px 0 #194d9b;white-space:nowrap}
-    .fps-menu-card .fps-game-title .fps-logo::after{content:"";position:absolute;left:2%;right:2%;bottom:-4px;height:4px;background:#194d9b;clip-path:polygon(0 30%,100% 0,97% 100%,2% 95%)}
-    .fps-menu-card .fps-game-title .fps-place{font-family:ui-monospace,SFMono-Regular,Consolas,"Noto Sans JP",sans-serif;font-size:clamp(14px,2.5vw,19px);font-weight:800;display:block;letter-spacing:.045em;line-height:1.45;margin-top:14px;overflow-wrap:anywhere;max-height:5.8em;overflow:hidden}
-    @media(max-width:430px){.fps-menu-card{padding:22px 19px}.fps-menu-card .fps-game-title .fps-logo{font-size:clamp(32px,10vw,54px)}}
-    .fps-menu-card p{font-size:13px;line-height:1.8;color:#194d9b}.fps-menu-controls{background:#f4efe1;padding:12px;border:1px solid #b5c4d8}.fps-menu-actions{display:flex;gap:8px;flex-wrap:wrap}.fps-menu-actions button{font-weight:700}.fps-menu-card .help{color:#47658c}
+    .fps-menu-card{background:repeating-linear-gradient(0deg,#faf7ec 0 31px,#c4d3df 32px,#faf7ec 33px);border:2px solid #194d9b;box-shadow:9px 10px 0 #194d9b30;color:#194d9b;width:min(660px,calc(100% - 14px));padding:clamp(21px,4vw,39px) clamp(20px,5vw,45px);transform:rotate(-1deg);max-height:calc(100dvh - 32px);overflow-y:auto;scrollbar-width:thin;font-family:'Courier New',ui-monospace,monospace}
+    .fps-menu-card h2.fps-game-title{font-size:clamp(35px,7vw,66px);letter-spacing:-.075em;color:#194d9b;display:block;line-height:1.05;margin:19px 0 13px;overflow:visible}
+    .fps-menu-card .fps-game-title .fps-logo{font-family:'Courier New',ui-monospace,monospace;font-size:inherit;letter-spacing:inherit;font-weight:1000;font-style:normal;line-height:1.05;display:block;transform:none;text-shadow:none;white-space:nowrap}
+    .fps-menu-card .fps-game-title .fps-subtitle{display:block;font-size:clamp(14px,2.5vw,22px);font-weight:800;letter-spacing:.2em;margin:24px 0 0;line-height:1.5}
+    .fps-menu-card .fps-game-title .fps-place{font-family:'Courier New',ui-monospace,'Noto Sans JP',sans-serif;font-size:clamp(13px,2vw,18px);font-weight:800;display:block;letter-spacing:.055em;line-height:1.5;margin-top:8px;overflow-wrap:anywhere;max-height:4.5em;overflow:hidden}
+    .fps-menu-card p{font-size:13px;line-height:1.75;color:#194d9b}
+    .fps-menu-controls{padding:10px 0;margin:11px 0 18px;background:transparent;border:0;border-top:1px solid #b4c5d7;border-bottom:1px solid #b4c5d7}
+    .fps-menu-actions{display:flex;gap:8px;flex-wrap:wrap}
+    .fps-menu-actions button{font-weight:700;border:1px solid #194d9b;background:#f7f3e7;color:#194d9b;border-radius:0;font-family:inherit;box-shadow:3px 3px 0 #194d9b27}
+    .fps-menu-actions button.primary{background:#194d9b;color:#f7f3e7;border-color:#194d9b;box-shadow:4px 4px 0 #194d9b35}
+    .fps-menu-card .help{color:#47658c}
+    @media(max-width:430px){.fps-menu-card{padding:23px 19px;transform:rotate(-.6deg)}.fps-menu-card h2.fps-game-title{font-size:clamp(31px,9.5vw,47px)}}
+    /* The game HUD keeps the upper-right corner for stats and controls. */
+    .fps-right-stack{display:flex;flex-direction:column;align-items:stretch;gap:8px;width:min(252px,48%);flex-shrink:0}
+    .fps-right-stack .fps-score{justify-content:space-around;min-width:0}
+    .fps-right-stack .fps-help{font-size:10px;line-height:1.6;min-width:0;padding:10px 11px;border:2px solid #194d9b;color:#194d9b;background:#f7f3e7ec;box-shadow:4px 4px 0 #194d9b20;white-space:normal}
+    .fps-help-title{font-size:10px;letter-spacing:.12em;font-weight:800;margin-bottom:5px;border-bottom:1px solid #9eb5cc;padding-bottom:4px}
+    .fps-help kbd{font:bold 10px ui-monospace,monospace;color:#194d9b}
+    .fps-help-line{display:block;margin:2px 0}
+    .fps-bottom{justify-content:flex-end;pointer-events:none}
+    #fpsRadar{position:absolute;left:19px;bottom:15px;width:216px;padding:9px 9px 7px;border:2px solid #194d9b;background:#faf7ecef;box-shadow:4px 4px 0 #194d9b2b;color:#194d9b}
+    .fps-radar-title{font-weight:800;font-size:10px;letter-spacing:.16em;display:flex;justify-content:space-between;margin-bottom:6px}
+    #fpsRadarCanvas{display:block;width:100%;height:auto;aspect-ratio:1;border:1px solid #8eabc6;background:#fbf9f0}
+    .fps-radar-meta{font-size:10px;margin-top:6px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+    .fps-radar-dot{width:7px;height:7px;border-radius:50%;display:inline-block;background:#b93c50;margin-right:4px}
+    @media(max-width:600px){#fpsRadar{left:7px;bottom:7px;width:min(174px,44vw);padding:6px}.fps-right-stack{width:min(196px,53%);gap:5px}.fps-right-stack .fps-help{font-size:9px;padding:6px 7px;line-height:1.35}.fps-help-title{font-size:9px;margin-bottom:3px}.fps-help kbd{font-size:9px}.fps-right-stack .fps-score b{font-size:17px}.fps-radar-title{font-size:9px}}
     @media(max-width:600px){.fps-help{font-size:9px}.fps-score{gap:8px}.fps-top,.fps-bottom{left:7px;right:7px}.fps-panel{padding:7px;min-width:0}.fps-weapon b{font-size:17px}}
   </style>
   <script type="importmap">
@@ -92,7 +109,7 @@
 <div class="app">
   <header>
     <div class="logo">▥</div>
-    <div class="brand"><strong>街並みスケッチ 3D <small style="color:var(--accent);font-size:10px">v0.7.3</small></strong><span>OSM CITY SCOUT · 地図から街とゲームを生成</span></div>
+    <div class="brand"><strong>街並みスケッチ 3D <small style="color:var(--accent);font-size:10px">v0.7.4</small></strong><span>OSM CITY SCOUT · 地図から街とゲームを生成</span></div>
     <div class="header-tools"><span class="pill" id="loadstate">地図データを準備中</span><button class="primary small" id="gameBtn" disabled>▶ INKBOUND FPS</button><button class="small" id="resetPlace">↺ 西口に戻す</button></div>
   </header>
   <main class="viewer" id="viewer">
@@ -106,11 +123,15 @@
     <div id="busy" class="show" role="status" aria-live="polite"><div class="busy-content"><div class="loader"></div><b id="busy-title">街並みの読み込みを準備中</b><p id="busy-detail">OpenStreetMapに問い合わせています。<br>初回読み込みには時間がかかる場合があります。</p></div></div>
     <div id="toast" role="status" aria-live="polite"></div>
     <div id="fpsHud" hidden aria-label="INKBOUND FPS HUD">
-      <div class="fps-top"><div class="fps-panel"><div class="fps-caption" id="fpsHudPlace">INKBOUND / 山形駅西口</div><div class="fps-hp">HP <b id="fpsHP">100</b></div><div class="fps-health"><div id="fpsHealthBar"></div></div></div><div class="fps-panel fps-score"><span>WAVE <b id="fpsWave">01</b></span><span>SCORE <b id="fpsScore">0000</b></span></div></div>
+      <div class="fps-top"><div class="fps-panel"><div class="fps-caption" id="fpsHudPlace">INKBOUND / 山形駅西口</div><div class="fps-hp">HP <b id="fpsHP">100</b></div><div class="fps-health"><div id="fpsHealthBar"></div></div></div>
+        <div class="fps-right-stack"><div class="fps-panel fps-score"><span>WAVE <b id="fpsWave">01</b></span><span>SCORE <b id="fpsScore">0000</b></span></div>
+          <div class="fps-help" aria-label="ゲーム操作説明"><div class="fps-help-title">CONTROL NOTES</div><span class="fps-help-line"><kbd>WASD</kbd> 移動 / <kbd>MOUSE</kbd> 視点</span><span class="fps-help-line"><kbd>CLICK</kbd> 射撃 / <kbd>R</kbd> 装填</span><span class="fps-help-line"><kbd>SPACE</kbd> ジャンプ / <kbd>SHIFT</kbd> ダッシュ</span><span class="fps-help-line"><kbd>CTRL</kbd> スライド / <kbd>E</kbd> グラップル</span><span class="fps-help-line"><kbd>ESC</kbd> 一時停止</span></div>
+        </div></div>
       <div id="fpsNotice" role="status" aria-live="polite"></div><div id="fpsReticle">+</div><div id="fpsHit">×</div><div id="fpsHurt"></div>
-      <div class="fps-bottom"><div class="fps-help">WASD 移動・マウス 視点 / 左クリック 射撃<br>SPACE ジャンプ / SHIFT ダッシュ / CTRL スライド<br>E 長押し グラップル / R リロード / ESC ポーズ</div><div class="fps-panel fps-weapon"><small>INK RIFLE / AUTO</small><b id="fpsAmmo">30 / ∞</b><small id="fpsAbility">AIR DASH READY</small></div></div>
+      <div id="fpsRadar" aria-label="INKBOUND ミニマップ。建物、道路、自分と敵の位置"><div class="fps-radar-title"><span>CITY RADAR</span><span>N ↑</span></div><canvas id="fpsRadarCanvas" width="400" height="400" aria-label="建物と道路・敵の位置を示すミニマップ"></canvas><div class="fps-radar-meta"><span><span class="fps-radar-dot"></span>敵 <b id="fpsRadarEnemies">0</b></span><span>±<span id="fpsRadarRange">95</span>m</span></div></div>
+      <div class="fps-bottom"><div class="fps-panel fps-weapon"><small>INK RIFLE / AUTO</small><b id="fpsAmmo">30 / ∞</b><small id="fpsAbility">AIR DASH READY</small></div></div>
     </div>
-    <div id="fpsMenu" hidden><div class="fps-menu-card"><div class="fps-caption">FIELD NOTES / REAL CITY</div><h2 class="fps-game-title"><span class="fps-logo">INKBOUND</span><span class="fps-place" id="fpsPlaceTitle">山形駅西口</span></h2><p id="fpsIntro">山形駅西口の実際の道路と建物を舞台に、ドローンを撃破してWaveを進めよう。建物の高さ・屋上はOSM情報をもとにした推定を含みます。</p><p class="fps-menu-controls">WASD: 移動　/　SPACE: ジャンプ<br>左クリック: 射撃　/　E: 建物にグラップル<br>SHIFT: ダッシュ　/　R: リロード　/　ESC: ポーズ</p><div class="fps-menu-actions"><button class="primary" id="fpsResume">▶ 戦闘開始</button><button id="fpsExit">地図モードに戻る</button><button id="fpsCopyLink">🔗 FPS短縮URLをコピー</button></div><p id="fpsMsg" class="help">PC用キーボード・マウス操作。ゲームは読み込んだ地図範囲内で動作します。</p></div></div>
+    <div id="fpsMenu" hidden><div class="fps-menu-card"><div class="fps-caption">FIELD NOTES / REAL CITY</div><h2 class="fps-game-title"><span class="fps-logo">INKBOUND</span><span class="fps-subtitle">ROOFTOP RUN</span><span class="fps-place" id="fpsPlaceTitle">山形駅西口</span></h2><p id="fpsIntro">山形駅西口の実際の道路と建物を舞台に、ドローンを撃破してWaveを進めよう。建物の高さ・屋上はOSM情報をもとにした推定を含みます。</p><p class="fps-menu-controls">WASD: 移動　/　SPACE: ジャンプ<br>左クリック: 射撃　/　E: 建物にグラップル<br>SHIFT: ダッシュ　/　R: リロード　/　ESC: ポーズ</p><div class="fps-menu-actions"><button class="primary" id="fpsResume">▶ 戦闘開始</button><button id="fpsExit">地図モードに戻る</button><button id="fpsCopyLink">🔗 FPS短縮URLをコピー</button></div><p id="fpsMsg" class="help">PC用キーボード・マウス操作。ゲームは読み込んだ地図範囲内で動作します。</p></div></div>
   </main>
   <aside>
     <section>
@@ -150,7 +171,7 @@
       <div class="chips" style="margin-top:8px"><button id="copyLink">🔗 短縮URLをコピー</button><button id="copyGameLink">🎮 FPS短縮URL</button><button id="openOsm">↗ OSMで見る</button></div>
       <p class="help">PNGは現在の画面の解像度で保存します。GLBは街並みの3D形状を出力し、BlenderやUnityで利用できます。</p>
     </section>
-    <div class="note">v0.7.3：INKBOUNDの傾斜ロゴとGitHub Pagesだけで利用できる短縮URL（#g=）を追加。短縮URLには座標・範囲・ゲーム指定を保存し、地名は表示用に逆引きします。v0.7.2：検索した地名を地図取得中・ゲーム開始画面・HUDに反映し、FPS共有URLでも場所を復元。v0.7.1：ドローンの建物壁への衝突判定と迂回・上昇回避、直接FPSを開始する共有URLに対応。v0.7.0：INKBOUND FPS戦闘モードを追加（WASD、射撃、ジャンプ、ダッシュ、グラップリング、ドローンWave制、建物の壁・屋上衝突）。地図表示と切替可能。ゲーム操作はPCブラウザ推奨。v0.6.0までの改善：地上の線路と建物の重なりを判定し、線路部分の建物をくり抜きます。駅舎・上屋は高架状の構造として補完する場合があります。<strong>駅の内部構造・高さは実測ではありません。</strong> 窓台・集合住宅ベランダの立体表現を追加。OSMの単木・並木を取り込み、周辺の公園・歩道沿いの街路樹を推定補完。表示／密度切替と出典数の表示、樹木のインスタンス化で描画負荷を軽減。地図の左右反転を修正。真上表示は北が上・東が右です。道路の見え方を改善し、<strong>車道・歩道・道路輪郭・中央線・横断歩道</strong>を描画します。建物では線画の窓枠、大きな建物の窓・入口・階層線、OSMのbuilding:part・屋根情報を反映します。<strong>窓位置・道路細部・横断歩道の一部は推定</strong>です。現地の実測3Dモデルではありません。</div>
+    <div class="note">v0.7.4：元のINKBOUNDに合わせてノート紙カード全体を傾斜、FPS画面の左下にOSM連動ミニマップ、WAVE/SCORE下に操作説明を移動。v0.7.3：INKBOUNDの傾斜ロゴとGitHub Pagesだけで利用できる短縮URL（#g=）を追加。短縮URLには座標・範囲・ゲーム指定を保存し、地名は表示用に逆引きします。v0.7.2：検索した地名を地図取得中・ゲーム開始画面・HUDに反映し、FPS共有URLでも場所を復元。v0.7.1：ドローンの建物壁への衝突判定と迂回・上昇回避、直接FPSを開始する共有URLに対応。v0.7.0：INKBOUND FPS戦闘モードを追加（WASD、射撃、ジャンプ、ダッシュ、グラップリング、ドローンWave制、建物の壁・屋上衝突）。地図表示と切替可能。ゲーム操作はPCブラウザ推奨。v0.6.0までの改善：地上の線路と建物の重なりを判定し、線路部分の建物をくり抜きます。駅舎・上屋は高架状の構造として補完する場合があります。<strong>駅の内部構造・高さは実測ではありません。</strong> 窓台・集合住宅ベランダの立体表現を追加。OSMの単木・並木を取り込み、周辺の公園・歩道沿いの街路樹を推定補完。表示／密度切替と出典数の表示、樹木のインスタンス化で描画負荷を軽減。地図の左右反転を修正。真上表示は北が上・東が右です。道路の見え方を改善し、<strong>車道・歩道・道路輪郭・中央線・横断歩道</strong>を描画します。建物では線画の窓枠、大きな建物の窓・入口・階層線、OSMのbuilding:part・屋根情報を反映します。<strong>窓位置・道路細部・横断歩道の一部は推定</strong>です。現地の実測3Dモデルではありません。</div>
     <div class="footer">地図データ © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a> (ODbL)<br>3Dエンジン: three.js (MIT)／建物・道路: Overpass API<br>地名検索: Nominatim（公開APIの利用制限に従います）<br>単一HTML。初回の3Dライブラリ取得と地図データ取得にはインターネット接続が必要です。公開APIは混雑・通信制限で失敗する場合があります。</div>
   </aside>
 </div>
@@ -968,7 +989,7 @@ function syncPlaceLabels(){
  $('fpsPlaceTitle').textContent=name;
  $('fpsHudPlace').textContent=`INKBOUND / ${name}`;
  $('fpsIntro').textContent=`${name}の街を戦場に、追跡ドローンと戦おう。建物の高さ・屋上はOSM情報をもとにした推定を含みます。`;
- document.title=`${game.active?'INKBOUND':'街並みスケッチ 3D v0.7.3'} | ${name}`;
+ document.title=`${game.active?'INKBOUND':'街並みスケッチ 3D v0.7.4'} | ${name}`;
 }
 function updatePlaceUI(){
  $('lat').value=state.lat;$('lon').value=state.lon;$('radius').value=state.radius;
@@ -1158,10 +1179,66 @@ async function copyGameModeUrl(){
  try{await navigator.clipboard.writeText(link);toast('FPS短縮URLをコピーしました。開くとゲーム開始画面を表示します。')}
  catch{window.prompt('FPS短縮URL（コピーしてください）',link)}
 }
+// INKBOUND minimap: reuse the already downloaded OSM data, without an extra network request.
+const radarCanvas=$('fpsRadarCanvas'),radarCtx=radarCanvas.getContext('2d');
+const radarAtlas=document.createElement('canvas');radarAtlas.width=1024;radarAtlas.height=1024;
+const radarAtlasCtx=radarAtlas.getContext('2d');let radarExtent=480,radarScale=1,radarLast=-Infinity;
+function prepareGameRadar(){
+ const c=radarAtlasCtx,size=radarAtlas.width;
+ radarExtent=state.radius+160;radarScale=size/(2*radarExtent);
+ c.setTransform(1,0,0,1,0,0);c.fillStyle='#f9f7ef';c.fillRect(0,0,size,size);
+ c.save();c.translate(size/2,size/2);c.scale(radarScale,radarScale);
+ const elements=state.data||[];
+ const lines=(e)=>{if(!e.geometry||e.geometry.length<2)return false;c.beginPath();let seen=0;
+  for(const p of e.geometry){if(!Number.isFinite(p.lat)||!Number.isFinite(p.lon))continue;const xy=project(p.lat,p.lon);if(!seen++)c.moveTo(xy[0],xy[1]);else c.lineTo(xy[0],xy[1]);}return seen>=2;
+ };
+ const areas=(e)=>{if(!e.geometry||e.geometry.length<3)return false;if(!lines(e))return false;c.closePath();return true;};
+ // draw vegetation surfaces, then streets, railway tracks, and building footprints.
+ for(const e of elements){if(e.type!=='way')continue;const t=e.tags||{};
+  if(t.leisure==='park'||t.leisure==='garden'||t.landuse==='grass'||t.natural==='wood'){
+   if(areas(e)){c.fillStyle='#deeadc';c.fill();}}
+ }
+ for(const e of elements){if(e.type!=='way')continue;const t=e.tags||{};
+  if(!t.highway)continue;if(!lines(e))continue;
+  const path=/footway|pedestrian|path|steps|cycleway/.test(t.highway);
+  c.lineJoin='round';c.lineCap='round';c.strokeStyle='#d0c7b8';c.lineWidth=roadWidth(t)+(path?1:2);c.stroke();
+  c.strokeStyle=path?'#f2eade':'#fefefe';c.lineWidth=roadWidth(t);c.stroke();
+ }
+ for(const e of elements){if(e.type!=='way'||!e.tags?.railway)continue;if(!lines(e))continue;
+  c.strokeStyle='#8a93a5';c.lineWidth=2.6;c.stroke();
+ }
+ for(const e of elements){if(e.type!=='way')continue;const t=e.tags||{};if(!(t.building||t['building:part']))continue;
+  if(areas(e)){c.fillStyle='#9fadc0';c.fill();c.strokeStyle='#536b85';c.lineWidth=.55;c.stroke()}
+ }
+ for(const e of elements){if(e.type!=='node'||e.tags?.natural!=='tree'||!Number.isFinite(e.lat)||!Number.isFinite(e.lon))continue;
+  const [x,z]=project(e.lat,e.lon);c.fillStyle='#6da280';c.beginPath();c.arc(x,z,1.7,0,Math.PI*2);c.fill();
+ }
+ c.restore();radarLast=-Infinity;
+}
+function drawGameRadar(force=false){
+ if(!game.active||!radarCtx)return;
+ const now=performance.now();if(!force&&now-radarLast<130)return;radarLast=now;
+ const c=radarCtx,size=radarCanvas.width,center=size/2,range=Math.min(115,Math.max(65,state.radius*.35));
+ const src=range*2*radarScale,sx=radarAtlas.width/2+game.player.x*radarScale-src/2,sy=radarAtlas.height/2+game.player.z*radarScale-src/2;
+ c.setTransform(1,0,0,1,0,0);c.fillStyle='#f9f7ef';c.fillRect(0,0,size,size);
+ c.drawImage(radarAtlas,sx,sy,src,src,0,0,size,size);
+ const scale=size/(range*2);
+ c.strokeStyle='#194d9b35';c.lineWidth=1;c.beginPath();c.moveTo(center,0);c.lineTo(center,size);c.moveTo(0,center);c.lineTo(size,center);c.stroke();
+ // Mark enemies that fall within the mini-map window; keep it north-up (world -Z = north).
+ let visible=0;
+ for(const d of game.drones){
+  const x=center+(d.root.position.x-game.player.x)*scale,y=center+(d.root.position.z-game.player.z)*scale;
+  if(x<6||y<6||x>size-6||y>size-6)continue;
+  c.beginPath();c.arc(x,y,6.5,0,Math.PI*2);c.fillStyle='#b93c50';c.fill();c.strokeStyle='#fff';c.lineWidth=2;c.stroke();visible++;
+ }
+ c.save();c.translate(center,center);c.rotate(-game.yaw);c.beginPath();c.moveTo(0,-14);c.lineTo(-9,10);c.lineTo(0,5);c.lineTo(9,10);c.closePath();c.fillStyle='#194d9b';c.fill();c.lineWidth=2.5;c.strokeStyle='#fff';c.stroke();c.restore();
+ c.strokeStyle='#194d9b';c.lineWidth=3;c.strokeRect(1.5,1.5,size-3,size-3);
+ $('fpsRadarEnemies').textContent=String(game.drones.length);$('fpsRadarRange').textContent=String(Math.round(range));
+}
 function gameEnter(){if(!state.loaded){toast('先に地図を読み込んでください');return}
  if(game.active)return;
  setGameUrlMode(true);
- controls.enabled=false;game.active=true;game.locked=false;syncPlaceLabels();gameReset();document.querySelector('.app').classList.add('fps');$('fpsHud').hidden=false;$('fpsMenu').hidden=false;$('fpsResume').textContent='▶ 戦闘開始';syncPlaceLabels();$('fpsMsg').textContent='クリックでマウスを固定します。ESCで一時停止。';gun.visible=true;$('gameBtn').textContent='✕ 地図へ戻る';gameAim();
+ controls.enabled=false;game.active=true;game.locked=false;syncPlaceLabels();gameReset();prepareGameRadar();drawGameRadar(true);document.querySelector('.app').classList.add('fps');$('fpsHud').hidden=false;$('fpsMenu').hidden=false;$('fpsResume').textContent='▶ 戦闘開始';syncPlaceLabels();$('fpsMsg').textContent='クリックでマウスを固定します。ESCで一時停止。';gun.visible=true;$('gameBtn').textContent='✕ 地図へ戻る';gameAim();
 }
 function requestGameLock(){if(!game.active)return;try{const promise=canvas.requestPointerLock();if(promise?.catch)promise.catch(()=>{$('fpsMsg').textContent='マウス固定がブロックされました。Chrome等で開いて再度お試しください。'})}catch(e){$('fpsMsg').textContent='マウス固定に失敗しました：'+e.message}}
 function leaveGame(){if(!game.active)return;setGameUrlMode(false);game.active=false;game.locked=false;clearKeys();clearGameObjects();gun.visible=false;$('gameBtn').textContent='▶ INKBOUND FPS';syncPlaceLabels();$('fpsHud').hidden=true;$('fpsMenu').hidden=true;document.querySelector('.app').classList.remove('fps');controls.enabled=true;camera.rotation.order='XYZ';setCameraView('bird');if(document.pointerLockElement===canvas)document.exitPointerLock();
@@ -1300,7 +1377,7 @@ function gameStep(dt){game.time+=dt;game.shotCool=Math.max(0,game.shotCool-dt);g
 }
 function gameDraw(dt){gameAim();gun.position.set(.39+Math.sin(game.time*10)*.012,-.34+Math.cos(game.time*19)*.009,-.64);muzzle.visible=game.muzzleTime>0;
  rope.visible=!!game.grapple;if(game.grapple){ropeGeometry.attributes.position.setXYZ(0,game.player.x+.2,game.player.y+game.eye-.2,game.player.z);ropeGeometry.attributes.position.setXYZ(1,game.grapple.x,game.grapple.y,game.grapple.z);ropeGeometry.attributes.position.needsUpdate=true;ropeGeometry.computeBoundingSphere()}
- $('fpsHP').textContent=Math.ceil(game.hp);$('fpsHealthBar').style.width=game.hp+'%';$('fpsScore').textContent=String(game.score).padStart(4,'0');$('fpsWave').textContent=String(game.wave).padStart(2,'0');$('fpsAmmo').textContent=game.reloading>0?'RELOADING…':game.ammo+' / ∞';$('fpsAbility').textContent=game.grapple?'GRAPPLE CONNECTED':game.airDash?'AIR DASH READY':'AIR DASH USED';$('fpsHit').style.opacity=game.hitTime>0?'1':'0';$('fpsHurt').style.opacity=String(game.hurtTime*1.5);if(game.noticeTime<=0)$('fpsNotice').textContent='';
+ $('fpsHP').textContent=Math.ceil(game.hp);$('fpsHealthBar').style.width=game.hp+'%';$('fpsScore').textContent=String(game.score).padStart(4,'0');$('fpsWave').textContent=String(game.wave).padStart(2,'0');$('fpsAmmo').textContent=game.reloading>0?'RELOADING…':game.ammo+' / ∞';$('fpsAbility').textContent=game.grapple?'GRAPPLE CONNECTED':game.airDash?'AIR DASH READY':'AIR DASH USED';$('fpsHit').style.opacity=game.hitTime>0?'1':'0';$('fpsHurt').style.opacity=String(game.hurtTime*1.5);if(game.noticeTime<=0)$('fpsNotice').textContent='';drawGameRadar();
 }
 $('gameBtn').addEventListener('click',()=>{if(!game.active)gameEnter();else leaveGame()});
 $('fpsResume').addEventListener('click',()=>{if(game.dead||!game.started)gameReset();requestGameLock()});
