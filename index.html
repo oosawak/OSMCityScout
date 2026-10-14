@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#101927">
-  <title>街並みスケッチ 3D v0.5.0 | 山形駅西口</title>
+  <title>街並みスケッチ 3D v0.6.0 | 山形駅西口</title>
   <meta name="description" content="OpenStreetMapの建物・道路をブラウザで3D化。山形駅西口から街並みの線画、マンガ調の背景画像やGLBを作成できます。">
   <style>
     :root { color-scheme: dark; --bg:#0b111b; --panel:#111c2b; --panel2:#182638; --line:#2b3c51; --text:#edf3fc; --muted:#9bacbf; --accent:#71e0bc; --cyan:#82c9f7; --orange:#ffc875; }
@@ -64,7 +64,7 @@
 <div class="app">
   <header>
     <div class="logo">▥</div>
-    <div class="brand"><strong>街並みスケッチ 3D <small style="color:var(--accent);font-size:10px">v0.5.0</small></strong><span>OSM CITY SCOUT · 山形駅西口からスタート</span></div>
+    <div class="brand"><strong>街並みスケッチ 3D <small style="color:var(--accent);font-size:10px">v0.6.0</small></strong><span>OSM CITY SCOUT · 山形駅西口からスタート</span></div>
     <div class="header-tools"><span class="pill" id="loadstate">地図データを準備中</span><button class="small" id="resetPlace">↺ 西口に戻す</button></div>
   </header>
   <main class="viewer" id="viewer">
@@ -102,6 +102,8 @@
       <div class="field"><label for="detailLevel">建物のディテール（変更後すぐ反映）</label><select id="detailLevel"><option value="light">軽量（窓を少なめに）</option><option value="normal" selected>標準（窓・階層線・入口）</option><option value="rich">詳細（細かな窓割り）</option></select></div>
       <p id="buildingInfo" class="help" aria-live="polite">高さ・屋根・窓の生成状況は読み込み後に表示します。</p>
       <label class="switch-row"><input type="checkbox" id="showRails" checked> 鉄道線路</label>
+      <label class="switch-row"><input type="checkbox" id="avoidRailCollision" checked> 線路と建物の重なりを補正（推奨）</label>
+      <p id="railInfo" class="help" aria-live="polite">線路と建物の干渉判定は、地図読み込み後に表示します。</p>
     </section>
     <section>
       <h2>03 · カメラ <em>CAMERA</em></h2>
@@ -114,7 +116,7 @@
       <div class="chips" style="margin-top:8px"><button id="copyLink">🔗 現在の場所を共有</button><button id="openOsm">↗ OSMで見る</button></div>
       <p class="help">PNGは現在の画面の解像度で保存します。GLBは街並みの3D形状を出力し、BlenderやUnityで利用できます。</p>
     </section>
-    <div class="note">v0.5.0：窓台・集合住宅ベランダの立体表現を追加。OSMの単木・並木を取り込み、周辺の公園・歩道沿いの街路樹を推定補完。表示／密度切替と出典数の表示、樹木のインスタンス化で描画負荷を軽減。地図の左右反転を修正。真上表示は北が上・東が右です。道路の見え方を改善し、<strong>車道・歩道・道路輪郭・中央線・横断歩道</strong>を描画します。建物では線画の窓枠、大きな建物の窓・入口・階層線、OSMのbuilding:part・屋根情報を反映します。<strong>窓位置・道路細部・横断歩道の一部は推定</strong>です。現地の実測3Dモデルではありません。</div>
+    <div class="note">v0.6.0：地上の線路と建物の重なりを判定し、線路部分の建物をくり抜きます。駅舎・上屋は高架状の構造として補完する場合があります。<strong>駅の内部構造・高さは実測ではありません。</strong> 窓台・集合住宅ベランダの立体表現を追加。OSMの単木・並木を取り込み、周辺の公園・歩道沿いの街路樹を推定補完。表示／密度切替と出典数の表示、樹木のインスタンス化で描画負荷を軽減。地図の左右反転を修正。真上表示は北が上・東が右です。道路の見え方を改善し、<strong>車道・歩道・道路輪郭・中央線・横断歩道</strong>を描画します。建物では線画の窓枠、大きな建物の窓・入口・階層線、OSMのbuilding:part・屋根情報を反映します。<strong>窓位置・道路細部・横断歩道の一部は推定</strong>です。現地の実測3Dモデルではありません。</div>
     <div class="footer">地図データ © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a> (ODbL)<br>3Dエンジン: three.js (MIT)／建物・道路: Overpass API<br>地名検索: Nominatim（公開APIの利用制限に従います）<br>単一HTML。初回の3Dライブラリ取得と地図データ取得にはインターネット接続が必要です。公開APIは混雑・通信制限で失敗する場合があります。</div>
   </aside>
 </div>
@@ -366,6 +368,137 @@ function addRoof(pts,top,h,tags,id){
  }
  return roofHeight;
 }
+// Ground railway centerlines are not solid obstacles at bridge/tunnel levels.
+// Buffer each ground rail segment by a conservative 2.2m to protect the track corridor.
+let railCorridors=[];
+const railRepair={buildings:0,cutouts:0,stationBridges:0,skipped:0};
+function setRailCorridors(railWays){
+ railCorridors=[];
+ if(!$('avoidRailCollision').checked)return;
+ for(const way of railWays){
+  const t=way.tags||{};
+  if(t.tunnel&&t.tunnel!=='no')continue;
+  if(t.bridge&&t.bridge!=='no')continue;
+  if(Number(t.layer||0)!==0)continue;
+  if(t.railway==='tram')continue;
+  const pts=wayGeometry(way);
+  for(let i=1;i<pts.length;i++){
+   const a=pts[i-1],b=pts[i],dx=b[0]-a[0],dz=b[1]-a[1],len=Math.hypot(dx,dz);
+   if(len<.2)continue;
+   const nx=-dz/len,nz=dx/len,half=2.2,end=.8;
+   const A=[a[0]-dx/len*end,a[1]-dz/len*end],B=[b[0]+dx/len*end,b[1]+dz/len*end];
+   const poly=[[A[0]+nx*half,A[1]+nz*half],[B[0]+nx*half,B[1]+nz*half],[B[0]-nx*half,B[1]-nz*half],[A[0]-nx*half,A[1]-nz*half]];
+   if(polygonArea(poly)<0)poly.reverse();
+   railCorridors.push({poly,bbox:bounds2(poly)});
+  }
+ }
+}
+function bounds2(points){let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+ for(const p of points){minX=Math.min(minX,p[0]);maxX=Math.max(maxX,p[0]);minY=Math.min(minY,p[1]);maxY=Math.max(maxY,p[1]);}
+ return {minX,maxX,minY,maxY};
+}
+function bboxTouch(a,b){return a.minX<=b.maxX&&a.maxX>=b.minX&&a.minY<=b.maxY&&a.maxY>=b.minY;}
+function cleanConvex(poly){const out=[];for(const p of poly){if(!out.length||Math.hypot(p[0]-out[out.length-1][0],p[1]-out[out.length-1][1])>1e-5)out.push(p);}
+ if(out.length>2&&Math.hypot(out[0][0]-out[out.length-1][0],out[0][1]-out[out.length-1][1])<1e-5)out.pop();
+ return out.length>=3&&Math.abs(polygonArea(out))>.0005?out:[];
+}
+function splitConvex(poly,a,b){
+ const inside=[],outside=[];
+ const side=p=>(b[0]-a[0])*(p[1]-a[1])-(b[1]-a[1])*(p[0]-a[0]);
+ let prev=poly[poly.length-1],ps=side(prev);
+ for(const cur of poly){const cs=side(cur),pIn=ps>=-1e-8,cIn=cs>=-1e-8;
+  if(pIn!==cIn){const t=ps/(ps-cs),p=[prev[0]+(cur[0]-prev[0])*t,prev[1]+(cur[1]-prev[1])*t];inside.push(p);outside.push(p);}
+  if(cIn)inside.push(cur);else outside.push(cur);
+  prev=cur;ps=cs;
+ }
+ return [cleanConvex(inside),cleanConvex(outside)];
+}
+// Subtract one convex rail rectangle from one convex footprint fragment.
+function subtractRailRectangle(poly,rect){
+ const remainder=[];let current=poly;
+ for(let i=0;i<rect.length;i++){
+  if(current.length<3)break;
+  const [inside,outside]=splitConvex(current,rect[i],rect[(i+1)%rect.length]);
+  if(outside.length)remainder.push(outside);
+  current=inside;
+ }
+ return remainder;
+}
+function railFootprint(pts){
+ if(!railCorridors.length)return null;
+ const buildingBounds=bounds2(pts),corridors=railCorridors.filter(c=>bboxTouch(buildingBounds,c.bbox));
+ if(!corridors.length)return null;
+ // Concave outlines are triangulated before subtraction; all working pieces are convex.
+ const corners=pts.map(p=>new THREE.Vector2(p[0],p[1]));
+ const triangles=THREE.ShapeUtils.triangulateShape(corners,[]);
+ let polys=triangles.map(t=>t.map(i=>pts[i])).filter(poly=>Math.abs(polygonArea(poly))>.01);
+ if(!polys.length)return null;
+ const originalArea=polys.reduce((a,poly)=>a+Math.abs(polygonArea(poly)),0);
+ for(const c of corridors){
+  let next=[];
+  for(const poly of polys){
+   if(!bboxTouch(bounds2(poly),c.bbox)){next.push(poly);continue;}
+   next.push(...subtractRailRectangle(poly,c.poly));
+  }
+  polys=next;
+  if(!polys.length||polys.length>4000)break;
+ }
+ const remainingArea=polys.reduce((a,poly)=>a+Math.abs(polygonArea(poly)),0);
+ // Ignore tiny mathematical intersections, but never draw in substantial rail corridor areas.
+ if(originalArea-remainingArea<.8)return null;
+ return {polys,corridors,removed:originalArea-remainingArea};
+}
+function pointOnEdge(p,a,b,eps=.015){const dx=b[0]-a[0],dz=b[1]-a[1],len2=dx*dx+dz*dz;
+ if(len2<1e-8)return false;
+ const u=((p[0]-a[0])*dx+(p[1]-a[1])*dz)/len2;
+ if(u<-.002||u>1.002)return false;
+ return Math.hypot(p[0]-(a[0]+dx*u),p[1]-(a[1]+dz*u))<eps;
+}
+function boundaryFragment(a,b,outer,rails){
+ // Triangle triangulation seams are not walls; real exterior and newly cut railway edges are.
+ for(let i=0;i<outer.length;i++)if(pointOnEdge(a,outer[i],outer[(i+1)%outer.length])&&pointOnEdge(b,outer[i],outer[(i+1)%outer.length]))return true;
+ for(const c of rails)for(let i=0;i<4;i++)if(pointOnEdge(a,c.poly[i],c.poly[(i+1)%4])&&pointOnEdge(b,c.poly[i],c.poly[(i+1)%4]))return true;
+ return false;
+}
+function addClippedBuildingMesh(pts,fragments,base,top,tags,id){
+ if(fragments.polys.length>4000)return false;
+ const positions=[],line=[];
+ const face=(a,b,c)=>positions.push(...a,...b,...c);
+ for(const poly of fragments.polys){
+  if(poly.length<3)continue;
+  for(let i=1;i<poly.length-1;i++){
+   face([poly[0][0],top,poly[0][1]],[poly[i][0],top,poly[i][1]],[poly[i+1][0],top,poly[i+1][1]]);
+   face([poly[0][0],base,poly[0][1]],[poly[i+1][0],base,poly[i+1][1]],[poly[i][0],base,poly[i][1]]);
+  }
+  for(let i=0;i<poly.length;i++){
+   const a=poly[i],b=poly[(i+1)%poly.length];
+   if(!boundaryFragment(a,b,pts,fragments.corridors))continue;
+   const a0=[a[0],base,a[1]],b0=[b[0],base,b[1]],a1=[a[0],top,a[1]],b1=[b[0],top,b[1]];
+   face(a0,b0,b1);face(a0,b1,a1);
+   line.push(...a0,...a1,...a1,...b1,...b1,...b0);
+  }
+ }
+ if(!positions.length)return false;
+ const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));geo.computeVertexNormals();
+ const mat=colorMat(randomColor(tags,id),{side:THREE.DoubleSide}),mesh=new THREE.Mesh(geo,mat);
+ mesh.userData.osmId=id;mesh.userData.originalColor=mat.color.getHex();registered(mesh,'building');
+ if(line.length){const edges=new THREE.BufferGeometry();edges.setAttribute('position',new THREE.Float32BufferAttribute(line,3));registered(new THREE.LineSegments(edges,new THREE.LineBasicMaterial({color:0x1e242a,transparent:true,opacity:1})),'outline');}
+ return true;
+}
+function stationLike(tags){return ['train_station','transportation','roof'].includes(tags.building)||tags.railway==='station'||tags.public_transport==='station';}
+function addUpperStationSpan(pts,base,top,tags,id){
+ const shape=new THREE.Shape();shape.moveTo(pts[0][0],-pts[0][1]);for(let i=1;i<pts.length;i++)shape.lineTo(pts[i][0],-pts[i][1]);shape.closePath();
+ const thickness=Math.max(.15,top-base);
+ if(thickness<=.05)return;
+ const geo=new THREE.ExtrudeGeometry(shape,{depth:thickness,bevelEnabled:false,steps:1});geo.rotateX(-Math.PI/2);
+ const mat=colorMat(randomColor(tags,id),{side:THREE.DoubleSide});
+ const bridge=new THREE.Mesh(geo,mat);bridge.position.y=base;bridge.userData.osmId=id;bridge.userData.originalColor=mat.color.getHex();registered(bridge,'building');
+ const outline=new THREE.LineSegments(new THREE.EdgesGeometry(geo,25),new THREE.LineBasicMaterial({color:0x222222}));outline.position.y=base;registered(outline,'outline');
+}
+function railDistance(x,z){
+ for(const c of railCorridors)if(x>=c.bbox.minX&&x<=c.bbox.maxX&&z>=c.bbox.minY&&z<=c.bbox.maxY&&pointInPolygon([x,z],c.poly))return true;
+ return false;
+}
 function mkBuilding(el){
  const tags=el.tags||{},pts=osmPoints(el);
  if(pts.length<3)return false;
@@ -374,6 +507,28 @@ function mkBuilding(el){
  const minHeight=meters(tags.min_height);const minLevel=meters(tags['building:min_level']);
  const base=Math.max(0,Math.min(120,minHeight!==null?minHeight:(minLevel||0)*3.15));
  if(h<=base+.3)return false;
+ const nearGround=base<5.2&&String(tags.tunnel||'')!=='yes'&&String(tags.bridge||'')!=='yes';
+ const trackCut=nearGround?railFootprint(pts):null;
+ if(trackCut){
+  railRepair.buildings++;
+  const canopy=tags.building==='roof'&&(minHeight===null&&minLevel===null);
+  if(canopy){
+   addUpperStationSpan(pts,5.4,5.75,tags,el.id);railRepair.stationBridges++;
+   return true;
+  }
+  const station=stationLike(tags)&&h>6.5;
+  const clearance=station?Math.min(5.4,h-1.0):h;
+  if(!addClippedBuildingMesh(pts,trackCut.polys.length?trackCut:{...trackCut,polys:[]},base,clearance,tags,el.id)){
+   if(!station){railRepair.skipped++;return false;}
+  }
+  if(station){addUpperStationSpan(pts,clearance,h,tags,el.id);railRepair.stationBridges++;}
+  else railRepair.cutouts++;
+  if(meters(tags.height)!==null||meters(tags['building:levels'])!==null)detailStats.taggedHeights++;
+  if(tags['building:part'])detailStats.parts++;
+  // Facade windows on the complete original wall would float across the track clearance.
+  // The cut sides remain solid, but receive no invented windows.
+  return true;
+ }
  const shape=new THREE.Shape();shape.moveTo(pts[0][0],-pts[0][1]);for(let i=1;i<pts.length;i++)shape.lineTo(pts[i][0],-pts[i][1]);shape.closePath();
  // 描画前に屋根の高さを決め、建物本体の壁面が屋根を突き抜けないようにする。
  const roofH=addRoof(pts,h,h-base,tags,el.id);
@@ -631,6 +786,8 @@ function buildWorld(elements,preserveCamera=false){
   }
   if(coverage>parentArea*.68){suppressed++;return false}return true;
  });
+ railRepair.buildings=0;railRepair.cutouts=0;railRepair.stationBridges=0;railRepair.skipped=0;
+ setRailCorridors(rail);
  for(const e of park){const pts=osmPoints(e);if(pts.length<3)continue;const kind=e.tags?.natural==='water'?'water':'grass';mkPoly(pts,.017,kind==='water'?matWater:matPark,kind)}
  for(const e of road)if(mkRoad(e))roads++;
  for(const e of rail)if(mkRail(e))railways++;
@@ -641,6 +798,7 @@ function buildWorld(elements,preserveCamera=false){
  $('buildingCount').textContent=buildings.toLocaleString();$('roadCount').textContent=roads.toLocaleString();$('treeCount').textContent=trees.toLocaleString();
  $('featurecount').textContent=`建物 ${buildings} · 樹木 ${trees} · 窓 ${detailStats.windows.toLocaleString()} · 線路 ${railways}`;
  $('treeInfo').textContent=`OSMの単木 ${vegetationStats.mapped}本 ／ OSMの並木から生成 ${vegetationStats.treeRows}本 ／ 公園・歩道の推定 ${vegetationStats.estimated}本。推定は実測位置を保証しません。`;
+ $('railInfo').textContent=$('avoidRailCollision').checked?`線路と重なった建物 ${railRepair.buildings}棟 ／ 地上の線路部分を除去 ${railRepair.cutouts}棟 ／ 駅舎の上部構造を推定 ${railRepair.stationBridges}棟 ／ 全体を省略 ${railRepair.skipped}棟。橋・トンネルの線路は除外。`: '重なり補正はオフです。OSMの建物が線路を塞ぐ場合があります。';
  $('buildingInfo').textContent=`生成した窓 ${detailStats.windows.toLocaleString()}個 ／ 入口 ${detailStats.doors} ／ OSMに高さ・階数情報あり ${detailStats.taggedHeights}/${buildings}棟 ／ 窓台 ${detailStats.sills} ／ ベランダ ${detailStats.balconies} ／ 建物部分 ${detailStats.parts}件 ／ 立体屋根 ${detailStats.roofs}件`;
  applyStyle();
  if(preserveCamera){camera.position.copy(savedPosition);controls.target.copy(savedTarget);controls.update()}
@@ -794,7 +952,7 @@ async function glbSave(){if(!state.loaded){toast('地図の読み込み後にGLB
 }
 function setLens(mm){camera.fov=THREE.MathUtils.radToDeg(2*Math.atan(36/(2*Number(mm))));camera.updateProjectionMatrix()}
 $('osmServer').addEventListener('change',()=>{$('networkInfo').textContent='取得先を切り替えました。「この範囲を生成」で再試行できます';});
-for(const id of ['detailLevel','generateVegetation','treeDensity'])$(id).addEventListener('change',()=>{if(state.data){setStatus('外観を再生成中');buildWorld(state.data,true);setStatus('読み込み完了')}});
+for(const id of ['detailLevel','generateVegetation','treeDensity','avoidRailCollision'])$(id).addEventListener('change',()=>{if(state.data){setStatus('外観を再生成中');buildWorld(state.data,true);setStatus('読み込み完了')}});
 $('searchBtn').addEventListener('click',searchPlace);$('searchText').addEventListener('keydown',e=>{if(e.key==='Enter')searchPlace()});$('loadBtn').addEventListener('click',loadCity);
 $('resetPlace').addEventListener('click',resetToStart);
 $('birdView').addEventListener('click',()=>setCameraView('bird'));$('closeView').addEventListener('click',()=>setCameraView('close'));$('topView').addEventListener('click',()=>setCameraView('top'));$('eyeView').addEventListener('click',()=>setCameraView('eye'));$('camReset').addEventListener('click',()=>setCameraView('bird'));
@@ -810,3 +968,4 @@ setLens($('lens').value);updatePlaceUI();loadCity();
 </script>
 </body>
 </html>
+
