@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#101927">
-  <title>街並みスケッチ 3D v0.4.1 | 山形駅西口</title>
+  <title>街並みスケッチ 3D v0.5.0 | 山形駅西口</title>
   <meta name="description" content="OpenStreetMapの建物・道路をブラウザで3D化。山形駅西口から街並みの線画、マンガ調の背景画像やGLBを作成できます。">
   <style>
     :root { color-scheme: dark; --bg:#0b111b; --panel:#111c2b; --panel2:#182638; --line:#2b3c51; --text:#edf3fc; --muted:#9bacbf; --accent:#71e0bc; --cyan:#82c9f7; --orange:#ffc875; }
@@ -64,7 +64,7 @@
 <div class="app">
   <header>
     <div class="logo">▥</div>
-    <div class="brand"><strong>街並みスケッチ 3D <small style="color:var(--accent);font-size:10px">v0.4.1</small></strong><span>OSM CITY SCOUT · 山形駅西口からスタート</span></div>
+    <div class="brand"><strong>街並みスケッチ 3D <small style="color:var(--accent);font-size:10px">v0.5.0</small></strong><span>OSM CITY SCOUT · 山形駅西口からスタート</span></div>
     <div class="header-tools"><span class="pill" id="loadstate">地図データを準備中</span><button class="small" id="resetPlace">↺ 西口に戻す</button></div>
   </header>
   <main class="viewer" id="viewer">
@@ -97,7 +97,8 @@
       <h2>02 · 絵の描き方 <em>STYLE</em></h2>
       <div class="chips" id="styles"><button data-style="color">カラー</button><button data-style="colorline">カラー＋線</button><button data-style="line">線画</button><button data-style="tone" class="active">マンガ調</button></div>
       <div class="field" style="margin-top:14px"><label for="shade">陰影・トーンの濃さ</label><div class="range-row"><input type="range" id="shade" min="0" max="100" value="60"><output id="shadeValue">60%</output></div></div>
-      <div class="grid2"><label class="switch-row"><input type="checkbox" id="showWindows" checked> 窓・窓枠（推定）</label><label class="switch-row"><input type="checkbox" id="showTrees" checked> 木</label></div>
+      <div class="grid2"><label class="switch-row"><input type="checkbox" id="showWindows" checked> 窓・窓枠（推定）</label><label class="switch-row"><input type="checkbox" id="showTrees" checked> 木を表示</label></div>
+      <div class="field" style="margin-top:9px"><label class="switch-row"><input type="checkbox" id="generateVegetation" checked> 並木・公園・街路樹を補完（推定を含む）</label><div class="grid2" style="margin-top:7px"><div><label for="treeDensity">植栽密度</label><select id="treeDensity"><option value="low">控えめ</option><option value="normal" selected>標準</option><option value="high">多め</option></select></div><div><label>植栽の出典</label><div style="font-size:11px;line-height:1.65;color:var(--muted)">OSM実在点 / 並木ライン / 推定配置を集計</div></div></div><p id="treeInfo" class="help" aria-live="polite">植栽数は3D生成後に表示します。</p></div>
       <div class="field"><label for="detailLevel">建物のディテール（変更後すぐ反映）</label><select id="detailLevel"><option value="light">軽量（窓を少なめに）</option><option value="normal" selected>標準（窓・階層線・入口）</option><option value="rich">詳細（細かな窓割り）</option></select></div>
       <p id="buildingInfo" class="help" aria-live="polite">高さ・屋根・窓の生成状況は読み込み後に表示します。</p>
       <label class="switch-row"><input type="checkbox" id="showRails" checked> 鉄道線路</label>
@@ -113,7 +114,7 @@
       <div class="chips" style="margin-top:8px"><button id="copyLink">🔗 現在の場所を共有</button><button id="openOsm">↗ OSMで見る</button></div>
       <p class="help">PNGは現在の画面の解像度で保存します。GLBは街並みの3D形状を出力し、BlenderやUnityで利用できます。</p>
     </section>
-    <div class="note">v0.4.1：地図の左右反転を修正。真上表示は北が上・東が右です。道路の見え方を改善し、<strong>車道・歩道・道路輪郭・中央線・横断歩道</strong>を描画します。建物では線画の窓枠、大きな建物の窓・入口・階層線、OSMのbuilding:part・屋根情報を反映します。<strong>窓位置・道路細部・横断歩道の一部は推定</strong>です。現地の実測3Dモデルではありません。</div>
+    <div class="note">v0.5.0：窓台・集合住宅ベランダの立体表現を追加。OSMの単木・並木を取り込み、周辺の公園・歩道沿いの街路樹を推定補完。表示／密度切替と出典数の表示、樹木のインスタンス化で描画負荷を軽減。地図の左右反転を修正。真上表示は北が上・東が右です。道路の見え方を改善し、<strong>車道・歩道・道路輪郭・中央線・横断歩道</strong>を描画します。建物では線画の窓枠、大きな建物の窓・入口・階層線、OSMのbuilding:part・屋根情報を反映します。<strong>窓位置・道路細部・横断歩道の一部は推定</strong>です。現地の実測3Dモデルではありません。</div>
     <div class="footer">地図データ © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a> (ODbL)<br>3Dエンジン: three.js (MIT)／建物・道路: Overpass API<br>地名検索: Nominatim（公開APIの利用制限に従います）<br>単一HTML。初回の3Dライブラリ取得と地図データ取得にはインターネット接続が必要です。公開APIは混雑・通信制限で失敗する場合があります。</div>
   </aside>
 </div>
@@ -125,10 +126,11 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
 const START={lat:38.2485213,lon:140.3266479,name:'山形駅 西口駅前広場'};
 const $=id=>document.getElementById(id);
 const state={...START,radius:280,style:'tone',data:null,buildings:0,roads:0,trees:0,loaded:false};
-const detailStats={windows:0,doors:0,taggedHeights:0,parts:0,roofs:0};
+const detailStats={windows:0,doors:0,taggedHeights:0,parts:0,roofs:0,sills:0,balconies:0};
+const vegetationStats={mapped:0,treeRows:0,estimated:0};
 let timer=0;
 let cityRoot = new THREE.Group(); cityRoot.name='OSM Yamagata City';
-const pieces={building:[],roof:[],road:[],sidewalk:[],roadEdge:[],roadMark:[],crossing:[],rail:[],grass:[],tree:[],outline:[],window:[],windowEdge:[],detail:[],door:[],water:[]};
+const pieces={building:[],roof:[],windowTrim:[],balcony:[],road:[],sidewalk:[],roadEdge:[],roadMark:[],crossing:[],rail:[],grass:[],tree:[],outline:[],window:[],windowEdge:[],detail:[],door:[],water:[]};
 const canvas=$('scene');
 const scene=new THREE.Scene(); scene.background=new THREE.Color(0xf5f3eb); scene.fog=new THREE.Fog(0xf5f3eb,450,1300);
 const camera=new THREE.PerspectiveCamera(48,1,0.2,4000);
@@ -210,7 +212,7 @@ function mkPoly(points,y,material,kind){if(points.length<3)return;
 }
 // ファサードの窓をバッファへ集約して1回の描画負荷を抑える。
 let detailBuffer=null;
-function newDetailBuffer(){detailBuffer={fill:[],fillIdx:[],line:[],floor:[],door:[],doorIdx:[],doorLine:[]};detailStats.windows=0;detailStats.doors=0;detailStats.taggedHeights=0;detailStats.parts=0;detailStats.roofs=0}
+function newDetailBuffer(){detailBuffer={fill:[],fillIdx:[],line:[],floor:[],door:[],doorIdx:[],doorLine:[],trim:[],trimIdx:[],balcony:[],balconyIdx:[],balconyEdge:[]};detailStats.windows=0;detailStats.doors=0;detailStats.taggedHeights=0;detailStats.parts=0;detailStats.roofs=0;detailStats.sills=0;detailStats.balconies=0}
 function seg(buffer,a,b){buffer.push(...a,...b)}
 function rectOnWall(buffer,edgeBuffer,center,right,halfW,lowY,height){
  const bottomLeft=[center[0]-right[0]*halfW,lowY,center[1]-right[1]*halfW];
@@ -224,6 +226,33 @@ function rectOnWall(buffer,edgeBuffer,center,right,halfW,lowY,height){
  seg(edgeBuffer,bottomLeft,bottomRight);seg(edgeBuffer,bottomRight,topRight);seg(edgeBuffer,topRight,topLeft);seg(edgeBuffer,topLeft,bottomLeft);
  return {bottomLeft,bottomRight,topRight,topLeft};
 }
+// ベランダの薄い床・庇、窓の水切りは上面を実ポリゴンにして線画でも輪郭が出るようにする。
+function pushHorizontalQuad(vertices,indices,a,b,c,d){
+ const i=vertices.length/3;vertices.push(...a,...b,...c,...d);
+ indices.push(i,i+1,i+2,i,i+2,i+3);
+}
+function addWindowSill(mid,ux,uz,nx,nz,width,y){
+ if(detailStats.sills>=3200||Math.hypot(mid[0],mid[1])>160)return;
+ const half=width*.5+.10,depth=.26;
+ const left=[mid[0]-ux*half,mid[1]-uz*half],right=[mid[0]+ux*half,mid[1]+uz*half];
+ const a=[left[0]-nx*.02,y,left[1]-nz*.02],b=[right[0]-nx*.02,y,right[1]-nz*.02],
+  c=[right[0]+nx*depth,y,right[1]+nz*depth],d=[left[0]+nx*depth,y,left[1]+nz*depth];
+ pushHorizontalQuad(detailBuffer.trim,detailBuffer.trimIdx,a,b,c,d);
+ seg(detailBuffer.floor,d,c);
+ detailStats.sills++;
+}
+function addBalcony(p,q,nx,nz,ux,uz,baseY,span){
+ if(detailStats.balconies>=300||Math.hypot((p[0]+q[0])*.5,(p[1]+q[1])*.5)>160)return;
+ const width=Math.min(span,Math.hypot(q[0]-p[0],q[1]-p[1])*.80),half=width*.5;
+ const cx=(p[0]+q[0])*.5,cz=(p[1]+q[1])*.5,depth=1.12;
+ const a=[cx-ux*half+nx*.08,baseY,cz-uz*half+nz*.08],b=[cx+ux*half+nx*.08,baseY,cz+uz*half+nz*.08],
+  c=[b[0]+nx*depth,baseY,b[2]+nz*depth],d=[a[0]+nx*depth,baseY,a[2]+nz*depth];
+ pushHorizontalQuad(detailBuffer.balcony,detailBuffer.balconyIdx,a,b,c,d);
+ seg(detailBuffer.balconyEdge,d,c);
+ seg(detailBuffer.balconyEdge,[d[0],baseY+1.05,d[2]],[c[0],baseY+1.05,c[2]]);
+ for(let i=0;i<=5;i++){const t=i/5;const x=d[0]*(1-t)+c[0]*t,z=d[2]*(1-t)+c[2]*t;seg(detailBuffer.balconyEdge,[x,baseY,z],[x,baseY+1.05,z])}
+ detailStats.balconies++;
+}
 function addWindow(pts,side,center,low,width,height,detail){
  if(detailStats.windows>=12000)return;
  const a=pts[side],b=pts[(side+1)%pts.length],dx=b[0]-a[0],dz=b[1]-a[1],len=Math.hypot(dx,dz);
@@ -231,7 +260,7 @@ function addWindow(pts,side,center,low,width,height,detail){
  const ux=dx/len,uz=dz/len, nx=sign*uz,nz=-sign*ux;
  const mid=[a[0]+dx*center+nx*.11,a[1]+dz*center+nz*.11];
  const rect=rectOnWall(detailBuffer.fill,detailBuffer.line,mid,[ux,uz],width*.5,low,height);
- if(detail!=='light'){
+ if(detail!=='light'){addWindowSill(mid,ux,uz,nx,nz,width,low-.13);
   const leftMid=[(rect.bottomLeft[0]+rect.topLeft[0])*.5,low+height*.5,(rect.bottomLeft[2]+rect.topLeft[2])*.5];
   const rightMid=[(rect.bottomRight[0]+rect.topRight[0])*.5,low+height*.5,(rect.bottomRight[2]+rect.topRight[2])*.5];
   seg(detailBuffer.line,leftMid,rightMid);
@@ -280,6 +309,10 @@ function addFacadeDetails(pts,base,facadeTop,roofHeight,tags,id){
     if(row===0&&Math.abs(col-(cols-1)/2)<.7&&i===mostVisibleSide&&base<1)continue;
     addWindow(pts,i,(col+.5)/cols,low,windowWidth,windowH,quality);
    }
+  }
+  // 一部の集合住宅で、道路に面する外壁にベランダを自動生成する（形状は推定）。
+  if(quality!=='light'&&['apartments','residential','dormitory'].includes(buildingType)&&length>=7&&length<48&&floorH>=2.7&&levelsUsed>=2){
+   for(let row=1;row<Math.min(levelsUsed,8);row++)addBalcony(p,q,nx,nz,ux,uz,base+row*floorH+.15,length*.80);
   }
   if(quality!=='light'&&facadeHeight>=6&&levelsUsed<=35){
    // 庇・階層の横線をファサードの外に浮かせる（線画で見える）。
@@ -361,9 +394,12 @@ function flushDetails(){
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));registered(new THREE.LineSegments(g,new THREE.LineBasicMaterial({color})),kind)}
  meshFrom(detailBuffer.fill,detailBuffer.fillIdx,'window',0x586677);
  meshFrom(detailBuffer.door,detailBuffer.doorIdx,'door',0x7c929f);
+ meshFrom(detailBuffer.trim,detailBuffer.trimIdx,'windowTrim',0xd8d6d1);
+ meshFrom(detailBuffer.balcony,detailBuffer.balconyIdx,'balcony',0xc7c8c6);
  linesFrom(detailBuffer.line,'windowEdge',0x333536);
  linesFrom(detailBuffer.doorLine,'windowEdge',0x303437);
  linesFrom(detailBuffer.floor,'detail',0x5c6369);
+ linesFrom(detailBuffer.balconyEdge,'detail',0x444b4c);
  detailBuffer=null;
 }
 function pointInPolygon(point,polygon){let inside=false;for(let i=0,j=polygon.length-1;i<polygon.length;j=i++){
@@ -441,9 +477,127 @@ function mkRoad(el){const pts=(el.geometry||[]).map(p=>project(p.lat,p.lon));if(
 function mkRail(el){const pts=(el.geometry||[]).map(p=>project(p.lat,p.lon));if(pts.length<2)return false;
  ribbon(pts,3.2,matTrack,'rail',.077);ribbon(pts,.16,matRail,'rail',.10,-.77);ribbon(pts,.16,matRail,'rail',.10,.77);return true;
 }
-function mkTree(lat,lon,id){const [x,z]=project(lat,lon);if(Math.abs(x)>state.radius*1.5||Math.abs(z)>state.radius*1.5)return;
- const height=4+(Math.abs(Number(id)||0)%55)/10;const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.14,.22,height*.5,5),colorMat(0x7b6551));trunk.position.set(x,height*.25,z);registered(trunk,'tree');
- const leaves=new THREE.Mesh(new THREE.IcosahedronGeometry(height*.31,0),colorMat(0x709179));leaves.position.set(x,height*.67,z);registered(leaves,'tree');}
+// 木は実測された点・OSMのtree_row・推定配置を分けて集計し、推定のみを切り替え可能にする。
+// InstancedMeshで幹・樹冠をまとめ、数百本でも描画コールを抑える。
+function pointToSegmentDistSq(x,z,a,b){
+ const dx=b[0]-a[0],dz=b[1]-a[1],denom=dx*dx+dz*dz;
+ const t=denom>1e-9?Math.max(0,Math.min(1,((x-a[0])*dx+(z-a[1])*dz)/denom)):0;
+ const qx=a[0]+dx*t,qz=a[1]+dz*t;return (x-qx)**2+(z-qz)**2;
+}
+function randomSequence(seed){let n=(hashNumber(seed)||0x12345678)>>>0;return ()=>{n^=n<<13;n^=n>>>17;n^=n<<5;return (n>>>0)/4294967296}}
+function wayGeometry(el){return (el.geometry||[]).filter(p=>Number.isFinite(p.lat)&&Number.isFinite(p.lon)).map(p=>project(p.lat,p.lon))}
+function boundsOf(poly){return {minX:Math.min(...poly.map(p=>p[0])),maxX:Math.max(...poly.map(p=>p[0])),minZ:Math.min(...poly.map(p=>p[1])),maxZ:Math.max(...poly.map(p=>p[1]))}}
+function walkPolyline(points,spacing,phase,callback){
+ if(points.length<2)return;
+ let distance=phase;
+ for(let k=1;k<points.length;k++){
+  const a=points[k-1],b=points[k],dx=b[0]-a[0],dz=b[1]-a[1],length=Math.hypot(dx,dz);
+  if(length<.01)continue;
+  while(distance<=length){
+   const t=distance/length;callback(a[0]+dx*t,a[1]+dz*t,dx/length,dz/length);
+   distance+=spacing;
+  }
+  distance-=length;
+ }
+}
+function buildVegetation(singleNodes,treeRows,plantingAreas,roads,rails,buildings){
+ const located=[],mappedShapes=[],blockedLines=[];
+ vegetationStats.mapped=0;vegetationStats.treeRows=0;vegetationStats.estimated=0;
+ const maxTrees=state.radius>=650?520:state.radius>=450?460:340;
+ const density=$('treeDensity').value;
+ const factor=density==='high'?.77:density==='low'?1.55:1;
+ for(const el of buildings){const pts=osmPoints(el);if(pts.length>=3){mappedShapes.push({poly:pts,bounds:boundsOf(pts)})}}
+ for(const r of [...roads,...rails]){
+  const pts=wayGeometry(r),w=r.tags?.railway?4:roadWidth(r.tags||{});
+  for(let i=1;i<pts.length;i++){
+   const a=pts[i-1],b=pts[i];if(Math.hypot(a[0]-b[0],a[1]-b[1])>.1)blockedLines.push({a,b,half:w/2+(r.tags?.railway?1.2:.4)});
+  }
+ }
+ function inBuildings(x,z){
+  for(const shape of mappedShapes){const b=shape.bounds;if(x>=b.minX-1&&x<=b.maxX+1&&z>=b.minZ-1&&z<=b.maxZ+1&&pointInPolygon([x,z],shape.poly))return true}
+  return false;
+ }
+ function onStreet(x,z,margin){
+  for(const l of blockedLines){const d=l.half+margin;if(Math.abs(l.a[0]-x)>d&&Math.abs(l.b[0]-x)>d&&(l.a[0]-x)*(l.b[0]-x)>0)continue;
+   if(Math.abs(l.a[1]-z)>d&&Math.abs(l.b[1]-z)>d&&(l.a[1]-z)*(l.b[1]-z)>0)continue;
+   if(pointToSegmentDistSq(x,z,l.a,l.b)<d*d)return true;
+  }
+  return false;
+ }
+ function add(x,z,source,id,requireFree=true){
+  if(!Number.isFinite(x)||!Number.isFinite(z)||Math.abs(x)>state.radius*1.2||Math.abs(z)>state.radius*1.2||located.length>=maxTrees)return false;
+  if(requireFree&&(inBuildings(x,z)||onStreet(x,z,.4)))return false;
+  const clearance=source==='mapped'?2.3:source==='treeRows'?4.5:5.1;
+  for(const o of located){if((x-o.x)**2+(z-o.z)**2<clearance**2)return false}
+  const seed=hashNumber(String(id)),r=randomSequence(id);
+  const height=source==='mapped'?5.5+r()*3.8:4.7+r()*4.0;
+  located.push({x,z,height,seed,source,kind:seed%11===0?'conifer':'broadleaf'});
+  if(source==='mapped')vegetationStats.mapped++;else if(source==='treeRows')vegetationStats.treeRows++;else vegetationStats.estimated++;
+  return true;
+ }
+ // OSMの樹木ノードは、道路に近くても実位置を優先する。
+ for(const node of singleNodes){if(located.length>=maxTrees)break;const [x,z]=project(node.lat,node.lon);add(x,z,'mapped',node.id,false)}
+ if($('generateVegetation').checked){
+  for(const row of treeRows){if(located.length>=maxTrees)break;
+   const pts=wayGeometry(row),spacing=(8.8*factor),random=randomSequence(`row:${row.id}`);
+   walkPolyline(pts,spacing,Math.max(2,spacing*.4), (x,z)=>{add(x,z,'treeRows',`row:${row.id}:${Math.round(x*3)}:${Math.round(z*3)}`)});
+  }
+  // 公園・広場・森林はポリゴン内に疎密をつけて配置し、道路・建物上は避ける。
+  for(const area of plantingAreas){if(located.length>=maxTrees)break;
+   const pts=osmPoints(area);if(pts.length<3)continue;
+   const b=boundsOf(pts),sizeX=b.maxX-b.minX,sizeZ=b.maxZ-b.minZ;
+   if(sizeX<5||sizeZ<5||sizeX*sizeZ>8e6)continue;
+   const tags=area.tags||{},forest=tags.landuse==='forest'||['wood','scrub'].includes(tags.natural);
+   const gap=(forest?9.5:17.5)*factor,rand=randomSequence(`park:${area.id}`);
+   const cols=Math.ceil(sizeX/gap),rows=Math.ceil(sizeZ/gap);
+   if(cols*rows>6000)continue;
+   for(let i=0;i<cols&&located.length<maxTrees;i++)for(let j=0;j<rows&&located.length<maxTrees;j++){
+    const x=b.minX+(i+.23+rand()*.54)*gap,z=b.minZ+(j+.23+rand()*.54)*gap;
+    if(pointInPolygon([x,z],pts))add(x,z,'estimated',`park:${area.id}:${i}:${j}`);
+   }
+  }
+  // 歩道沿いの街路樹。道路種別に応じて、十分な空間が取れる場合に限る。
+  for(const road of roads){if(located.length>=maxTrees)break;
+   const tags=road.tags||{},type=tags.highway;
+   if(!['residential','tertiary','secondary','primary','living_street','unclassified','pedestrian'].includes(type))continue;
+   if(tags.tunnel==='yes'||tags.bridge==='yes'||tags.sidewalk==='no')continue;
+   const pts=wayGeometry(road),width=roadWidth(tags),random=randomSequence(`street:${road.id}`);
+   const spacing=(type==='primary'||type==='secondary'?18:22)*factor,offset=width/2+(type==='pedestrian'?1.9:3.6);
+   walkPolyline(pts,spacing,spacing*.65,(x,z,ux,uz)=>{
+    const nx=-uz,nz=ux;
+    for(const side of [-1,1]){
+     if((tags.sidewalk==='left'&&side<0)||(tags.sidewalk==='right'&&side>0))continue;
+     add(x+nx*offset*side,z+nz*offset*side,'estimated',`street:${road.id}:${Math.round(x)}:${Math.round(z)}:${side}`);
+    }
+   });
+  }
+ }
+ const trunkShape=new THREE.CylinderGeometry(.12,.22,1,6);
+ const crownShape=new THREE.IcosahedronGeometry(1,1);
+ const coniferShape=new THREE.ConeGeometry(1,1,7,2);
+ const object=new THREE.Object3D();
+ function batch(trees,kind){
+  if(!trees.length)return;
+  const trunk=new THREE.InstancedMesh(trunkShape.clone(),colorMat(0x796653),trees.length);
+  const foliage=new THREE.InstancedMesh((kind==='conifer'?coniferShape:crownShape).clone(),colorMat(0x709179),trees.length);
+  trunk.userData.treeRole='trunk';foliage.userData.treeRole='foliage';
+  trunk.frustumCulled=false;foliage.frustumCulled=false;
+  trees.forEach((tree,i)=>{
+   const h=tree.height,rand=randomSequence(tree.seed);
+   object.position.set(tree.x,h*.23,tree.z);object.rotation.set(0,rand()*Math.PI*2,0);object.scale.set(1, h*.46,1);object.updateMatrix();trunk.setMatrixAt(i,object.matrix);
+   object.position.set(tree.x,h*.71,tree.z);object.rotation.set(0,rand()*Math.PI*2,0);
+   if(kind==='conifer')object.scale.set(h*.23,h*.68,h*.23);
+   else object.scale.set(h*(.27+rand()*.05),h*.32,h*(.27+rand()*.05));
+   object.updateMatrix();foliage.setMatrixAt(i,object.matrix);
+  });
+  trunk.instanceMatrix.needsUpdate=true;foliage.instanceMatrix.needsUpdate=true;
+  registered(trunk,'tree');registered(foliage,'tree');
+ }
+ batch(located.filter(t=>t.kind==='broadleaf'),'broadleaf');
+ batch(located.filter(t=>t.kind==='conifer'),'conifer');
+ trunkShape.dispose();crownShape.dispose();coniferShape.dispose();
+ return located.length;
+}
 function clearCity(){for(const key of Object.keys(pieces)){for(const obj of pieces[key]){
  obj.parent?.remove(obj);obj.geometry?.dispose();
  if(!['road','sidewalk','roadEdge','roadMark','crossing','rail','grass','water'].includes(key))obj.material?.dispose?.();
@@ -451,15 +605,17 @@ function clearCity(){for(const key of Object.keys(pieces)){for(const obj of piec
 function buildWorld(elements,preserveCamera=false){
  const savedPosition=camera.position.clone(),savedTarget=controls.target.clone();
  clearCity();newDetailBuffer();let buildings=0,roads=0,trees=0,railways=0;
- const park=[],road=[],rail=[],building=[],parts=[],nodes=[];
+ const park=[],road=[],rail=[],building=[],parts=[],nodes=[],treeRows=[],plantingAreas=[];
  for(const el of elements){const t=el.tags||{};
   if(el.type==='node'&&t.natural==='tree')nodes.push(el);
   else if(el.type==='way'){
+   if(t.natural==='tree_row')treeRows.push(el);
    if(t['building:part']&&t['building:part']!=='no')parts.push(el);
    else if(t.building&&t.building!=='no')building.push(el);
    else if(t.highway)road.push(el);
    else if(t.railway&&['rail','tram','light_rail'].includes(t.railway))rail.push(el);
-   else if(t.leisure==='park'||t.landuse==='grass'||t.natural==='water')park.push(el);
+   else if(t.leisure==='park'||['grass','forest','meadow','recreation_ground'].includes(t.landuse)||['water','wood','scrub'].includes(t.natural)||t.leisure==='garden')park.push(el);
+   if(t.leisure==='park'||t.leisure==='garden'||['grass','forest','meadow'].includes(t.landuse)||['wood','scrub'].includes(t.natural))plantingAreas.push(el);
   }
  }
  // OSM の建物部分は全体の輪郭より優先（重なった二重の箱を避ける）。
@@ -480,11 +636,12 @@ function buildWorld(elements,preserveCamera=false){
  for(const e of rail)if(mkRail(e))railways++;
  for(const e of [...visibleBuildings,...parts])if(mkBuilding(e))buildings++;
  flushDetails();
- for(const e of nodes.slice(0,250)){mkTree(e.lat,e.lon,e.id);trees++}
+ trees=buildVegetation(nodes,treeRows,plantingAreas,road,rail,[...visibleBuildings,...parts]);
  state.buildings=buildings;state.roads=roads;state.trees=trees;state.loaded=true;state.data=elements;
  $('buildingCount').textContent=buildings.toLocaleString();$('roadCount').textContent=roads.toLocaleString();$('treeCount').textContent=trees.toLocaleString();
- $('featurecount').textContent=`建物 ${buildings} · 窓 ${detailStats.windows.toLocaleString()} · 線路 ${railways}`;
- $('buildingInfo').textContent=`生成した窓 ${detailStats.windows.toLocaleString()}個 ／ 入口 ${detailStats.doors} ／ OSMに高さ・階数情報あり ${detailStats.taggedHeights}/${buildings}棟 ／ 建物部分 ${detailStats.parts}件 ／ 立体屋根 ${detailStats.roofs}件`;
+ $('featurecount').textContent=`建物 ${buildings} · 樹木 ${trees} · 窓 ${detailStats.windows.toLocaleString()} · 線路 ${railways}`;
+ $('treeInfo').textContent=`OSMの単木 ${vegetationStats.mapped}本 ／ OSMの並木から生成 ${vegetationStats.treeRows}本 ／ 公園・歩道の推定 ${vegetationStats.estimated}本。推定は実測位置を保証しません。`;
+ $('buildingInfo').textContent=`生成した窓 ${detailStats.windows.toLocaleString()}個 ／ 入口 ${detailStats.doors} ／ OSMに高さ・階数情報あり ${detailStats.taggedHeights}/${buildings}棟 ／ 窓台 ${detailStats.sills} ／ ベランダ ${detailStats.balconies} ／ 建物部分 ${detailStats.parts}件 ／ 立体屋根 ${detailStats.roofs}件`;
  applyStyle();
  if(preserveCamera){camera.position.copy(savedPosition);controls.target.copy(savedTarget);controls.update()}
  else setCameraView('bird');
@@ -514,11 +671,13 @@ function applyStyle(){const style=state.style,shade=Number($('shade').value)/100
  for(const mesh of pieces.roof){mesh.material.color.setHex(style==='color'||style==='colorline'?mesh.userData.originalColor:style==='tone'?0xe4e3e0:0xffffff)}
  for(const m of pieces.outline){m.visible=line;m.material.opacity=style==='colorline'?.7:1;m.material.color.setHex(style==='tone'?0x151515:0x22252a)}
  for(const m of pieces.window){m.visible=$('showWindows').checked&&style!=='line';m.material.color.setHex(pal.window)}
+ for(const m of pieces.windowTrim){m.visible=$('showWindows').checked;m.material.color.setHex(style==='tone'?0xdddcd8:style==='line'?0xffffff:0xd8d6d1)}
+ for(const m of pieces.balcony){m.visible=$('showWindows').checked;m.material.color.setHex(style==='tone'?0xe5e3df:style==='line'?0xffffff:0xc7c8c6)}
  // 線画でも窓枠を表示。以前は窓そのものを丸ごと隠していた。
  for(const m of pieces.windowEdge){m.visible=$('showWindows').checked;m.material.color.setHex(style==='tone'||style==='line'?0x292929:0x34414a)}
  for(const m of pieces.detail){m.visible=$('showWindows').checked&&style!=='color';m.material.color.setHex(style==='tone'||style==='line'?0x777777:0x7b8086)}
  for(const m of pieces.door){m.visible=$('showWindows').checked&&style!=='line';m.material.color.setHex(style==='tone'?0x9f9f9f:0x6a7b89)}
- for(const m of pieces.tree){m.visible=$('showTrees').checked;m.material.color.setHex(style==='line'?0xffffff:style==='tone'?0xdddddd:(m.geometry.type==='CylinderGeometry'?0x7b6551:0x709179))}
+ for(const m of pieces.tree){m.visible=$('showTrees').checked;m.material.color.setHex(style==='line'?0xffffff:style==='tone'?(m.userData.treeRole==='trunk'?0xb2b2b2:0xd9d9d9):(m.userData.treeRole==='trunk'?0x796653:0x709179))}
  for(const m of pieces.sidewalk){m.visible=true}
  for(const m of pieces.roadEdge){m.visible=true}
  for(const m of pieces.roadMark){m.visible=style!=='line'}
@@ -591,18 +750,18 @@ async function loadCity(){
  if(!Number.isFinite(lat)||lat<-90||lat>90||!Number.isFinite(lon)||lon<-180||lon>180){toast('緯度・経度の入力を確認してください');return}
  state.lat=lat;state.lon=lon;state.radius=radius;state.loaded=false;updatePlaceUI();
  setBusy(true,'実際の街並みを読み込み中','OpenStreetMapの建物・道路を取得しています。公開APIの混雑時には時間がかかる場合があります。');setStatus('データを取得中');
- const cacheKey=`cityscout:v3:${lat.toFixed(5)},${lon.toFixed(5)},${radius}`;
+ const cacheKey=`cityscout:v5:${lat.toFixed(5)},${lon.toFixed(5)},${radius}`;
  try {
   let elements=safeCacheRead(cacheKey);
   const fromCache=!!elements;
   if(!elements){const point=`(around:${radius},${lat},${lon})`;
-    const query=`[out:json][timeout:40];(way["building"]${point};way["building:part"]${point};way["highway"]${point};way["railway"]${point};way["leisure"="park"]${point};way["landuse"="grass"]${point};way["natural"="water"]${point};node["natural"="tree"]${point};);out geom;`;
+    const query=`[out:json][timeout:40];(way["building"]${point};way["building:part"]${point};way["highway"]${point};way["railway"]${point};way["leisure"="park"]${point};way["landuse"="grass"]${point};way["natural"="water"]${point};node["natural"="tree"]${point};way["natural"="tree_row"]${point};way["natural"="wood"]${point};way["landuse"="forest"]${point};way["landuse"="meadow"]${point};way["leisure"="garden"]${point};);out geom;`;
     try{elements=await fetchOverpass(query);safeCacheWrite(cacheKey,elements)}
     catch(e){
-     const oldKey=`cityscout:v1:${lat.toFixed(5)},${lon.toFixed(5)},${radius}`;
-     elements=safeCacheRead(oldKey);
+     const suffix=`${lat.toFixed(5)},${lon.toFixed(5)},${radius}`;
+     elements=safeCacheRead(`cityscout:v3:${suffix}`)||safeCacheRead(`cityscout:v1:${suffix}`);
      if(!elements)throw e;
-     $('networkInfo').textContent='新しい地図データの取得に失敗したため、前回の保存データから3Dを生成しました。建物部分の情報は未取得です。';
+     $('networkInfo').textContent='新しい地図データの取得に失敗したため、以前の保存データから生成しました。並木・植栽エリアの情報が不足している可能性があります。';
     }
   }
   if(id!==activeLoad)return;
@@ -635,7 +794,7 @@ async function glbSave(){if(!state.loaded){toast('地図の読み込み後にGLB
 }
 function setLens(mm){camera.fov=THREE.MathUtils.radToDeg(2*Math.atan(36/(2*Number(mm))));camera.updateProjectionMatrix()}
 $('osmServer').addEventListener('change',()=>{$('networkInfo').textContent='取得先を切り替えました。「この範囲を生成」で再試行できます';});
-$('detailLevel').addEventListener('change',()=>{if(state.data){setStatus('外観を再生成中');buildWorld(state.data,true);setStatus('読み込み完了')}});
+for(const id of ['detailLevel','generateVegetation','treeDensity'])$(id).addEventListener('change',()=>{if(state.data){setStatus('外観を再生成中');buildWorld(state.data,true);setStatus('読み込み完了')}});
 $('searchBtn').addEventListener('click',searchPlace);$('searchText').addEventListener('keydown',e=>{if(e.key==='Enter')searchPlace()});$('loadBtn').addEventListener('click',loadCity);
 $('resetPlace').addEventListener('click',resetToStart);
 $('birdView').addEventListener('click',()=>setCameraView('bird'));$('closeView').addEventListener('click',()=>setCameraView('close'));$('topView').addEventListener('click',()=>setCameraView('top'));$('eyeView').addEventListener('click',()=>setCameraView('eye'));$('camReset').addEventListener('click',()=>setCameraView('bird'));
