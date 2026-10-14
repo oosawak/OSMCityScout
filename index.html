@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#101927">
-  <title>街並みスケッチ 3D v0.6.0 | 山形駅西口</title>
+  <title>街並みスケッチ 3D v0.7.2 | 山形駅西口</title>
   <meta name="description" content="OpenStreetMapの建物・道路をブラウザで3D化。山形駅西口から街並みの線画、マンガ調の背景画像やGLBを作成できます。">
   <style>
     :root { color-scheme: dark; --bg:#0b111b; --panel:#111c2b; --panel2:#182638; --line:#2b3c51; --text:#edf3fc; --muted:#9bacbf; --accent:#71e0bc; --cyan:#82c9f7; --orange:#ffc875; }
@@ -55,6 +55,28 @@
     .footer {font-size:10px;line-height:1.7;color:#8498ad;margin-top:16px}.footer a {color:#81d2f1}
     #toast {position:absolute;z-index:5;bottom:72px;left:50%;transform:translateX(-50%);max-width:min(570px,90%);padding:12px 17px;border-radius:10px;border:1px solid #4d7791;background:#132a3d;color:#f1f9ff;box-shadow:0 8px 35px #0008;display:none;text-align:center;font-size:12px;line-height:1.6;pointer-events:none}
     @media(max-width:830px) { .app {grid-template-columns:1fr;grid-template-rows:56px minmax(280px,56dvh) minmax(0,1fr)} header {padding:0 12px;gap:9px}.pill {display:none}.brand strong {font-size:14px}.viewer-top {top:9px;left:9px;right:9px}.floating {padding:8px 10px}#placetag{font-size:11px;max-width:70%}.view-buttons {flex-direction:column}.view-buttons button{font-size:10px;padding:7px 9px}.viewer-bottom {bottom:9px;left:9px;right:9px}.hint {font-size:10px;padding:7px 9px}aside {border-left:0;border-top:1px solid var(--line);padding:15px}.header-tools button {font-size:11px;padding:8px 10px}}
+    /* INKBOUND FPS mode: the editor remains intact outside this mode. */
+    .app.fps {grid-template-columns:minmax(0,1fr)}
+    .app.fps aside,.app.fps .viewer-top,.app.fps .viewer-bottom,.app.fps #compass{display:none}
+    .app.fps .header-tools #resetPlace{display:none}
+    .app.fps #gameBtn{background:#314b73;border-color:#8eb8ee}
+    #fpsHud[hidden],#fpsMenu[hidden]{display:none!important}
+    #fpsHud{position:absolute;inset:0;z-index:4;pointer-events:none;color:#194d9b;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;background:repeating-linear-gradient(0deg,transparent 0 35px,#194d9b08 36px 37px)}
+    .fps-top,.fps-bottom{position:absolute;left:19px;right:19px;display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+    .fps-top{top:16px}.fps-bottom{bottom:15px;align-items:flex-end}
+    .fps-panel{border:2px solid #194d9b;background:#f7f3e7ed;box-shadow:4px 4px 0 #194d9b28;border-radius:2px;padding:10px 15px;color:#194d9b;min-width:140px}
+    .fps-caption,.fps-panel small{display:block;font-size:11px;letter-spacing:.13em}
+    .fps-hp{font-size:23px;font-weight:900;margin-top:5px}.fps-hp b{font-variant-numeric:tabular-nums}.fps-health{height:6px;background:#c7d1dc;margin-top:8px;width:155px}.fps-health>div{height:100%;background:#194d9b;width:100%}
+    .fps-score{display:flex;gap:24px;font-size:13px}.fps-score b{display:block;font-size:24px;margin-top:3px;font-variant-numeric:tabular-nums}
+    .fps-weapon{text-align:right}.fps-weapon b{display:block;font-size:24px;margin:8px 0}.fps-help{font-size:11px;line-height:1.7;color:#f7f3e7;background:#194d9bdc;padding:10px;border-radius:4px;text-shadow:none}
+    #fpsReticle,#fpsHit{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:30px;font-weight:800}#fpsHit{color:#dc3e44;font-size:46px;opacity:0}
+    #fpsNotice{position:absolute;left:12%;right:12%;top:20%;text-align:center;font-size:clamp(17px,3vw,28px);font-weight:900;color:#194d9b;text-shadow:2px 2px #f7f3e7}
+    #fpsHurt{position:absolute;inset:0;box-shadow:inset 0 0 140px #e03e3e;opacity:0;transition:opacity .1s}
+    #fpsMenu{position:absolute;inset:0;z-index:6;background:#f7f3e7b9;backdrop-filter:blur(5px);display:grid;place-items:center;padding:18px}
+    .fps-menu-card{background:repeating-linear-gradient(0deg,#faf7ec 0 31px,#cad7e4 32px,#faf7ec 33px);border:3px solid #194d9b;box-shadow:9px 9px 0 #194d9b2e;color:#194d9b;width:min(590px,100%);padding:27px 30px;transform:rotate(-.4deg)}
+    .fps-menu-card h2{font-size:clamp(27px,6vw,46px);letter-spacing:-.04em;color:#194d9b;display:block;margin:8px 0}.fps-menu-card h2 span{font-size:15px;display:block;letter-spacing:.06em;margin-top:7px}
+    .fps-menu-card p{font-size:13px;line-height:1.8;color:#194d9b}.fps-menu-controls{background:#f4efe1;padding:12px;border:1px solid #b5c4d8}.fps-menu-actions{display:flex;gap:8px;flex-wrap:wrap}.fps-menu-actions button{font-weight:700}.fps-menu-card .help{color:#47658c}
+    @media(max-width:600px){.fps-help{font-size:9px}.fps-score{gap:8px}.fps-top,.fps-bottom{left:7px;right:7px}.fps-panel{padding:7px;min-width:0}.fps-weapon b{font-size:17px}}
   </style>
   <script type="importmap">
     {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.168.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.168.0/examples/jsm/"}}
@@ -64,8 +86,8 @@
 <div class="app">
   <header>
     <div class="logo">▥</div>
-    <div class="brand"><strong>街並みスケッチ 3D <small style="color:var(--accent);font-size:10px">v0.6.0</small></strong><span>OSM CITY SCOUT · 山形駅西口からスタート</span></div>
-    <div class="header-tools"><span class="pill" id="loadstate">地図データを準備中</span><button class="small" id="resetPlace">↺ 西口に戻す</button></div>
+    <div class="brand"><strong>街並みスケッチ 3D <small style="color:var(--accent);font-size:10px">v0.7.2</small></strong><span>OSM CITY SCOUT · 地図から街とゲームを生成</span></div>
+    <div class="header-tools"><span class="pill" id="loadstate">地図データを準備中</span><button class="primary small" id="gameBtn" disabled>▶ INKBOUND FPS</button><button class="small" id="resetPlace">↺ 西口に戻す</button></div>
   </header>
   <main class="viewer" id="viewer">
     <canvas id="scene" aria-label="OpenStreetMapに基づく街並みの3D表示"></canvas>
@@ -75,8 +97,14 @@
     </div>
     <div id="compass" aria-label="北の方角" title="北の方向"><span id="compassNeedle">↑</span><span class="compassN">N</span></div>
     <div class="viewer-bottom"><div class="hint">ドラッグ：回転 ／ 右ドラッグ・2本指：移動 ／ ホイール・ピンチ：ズーム<br>実際の建物・道路をOSMから取得。道路は車道・歩道・白線を描画します。真上表示は「北↑・東→」。窓を確認するには「近景」「目線」を選んでください</div><div class="hint" id="featurecount">未読み込み</div></div>
-    <div id="busy" class="show" role="status" aria-live="polite"><div class="busy-content"><div class="loader"></div><b id="busy-title">山形駅西口の街並みを読み込み中</b><p id="busy-detail">OpenStreetMapに問い合わせています。<br>初回読み込みには時間がかかる場合があります。</p></div></div>
+    <div id="busy" class="show" role="status" aria-live="polite"><div class="busy-content"><div class="loader"></div><b id="busy-title">街並みの読み込みを準備中</b><p id="busy-detail">OpenStreetMapに問い合わせています。<br>初回読み込みには時間がかかる場合があります。</p></div></div>
     <div id="toast" role="status" aria-live="polite"></div>
+    <div id="fpsHud" hidden aria-label="INKBOUND FPS HUD">
+      <div class="fps-top"><div class="fps-panel"><div class="fps-caption" id="fpsHudPlace">INKBOUND / 山形駅西口</div><div class="fps-hp">HP <b id="fpsHP">100</b></div><div class="fps-health"><div id="fpsHealthBar"></div></div></div><div class="fps-panel fps-score"><span>WAVE <b id="fpsWave">01</b></span><span>SCORE <b id="fpsScore">0000</b></span></div></div>
+      <div id="fpsNotice" role="status" aria-live="polite"></div><div id="fpsReticle">+</div><div id="fpsHit">×</div><div id="fpsHurt"></div>
+      <div class="fps-bottom"><div class="fps-help">WASD 移動・マウス 視点 / 左クリック 射撃<br>SPACE ジャンプ / SHIFT ダッシュ / CTRL スライド<br>E 長押し グラップル / R リロード / ESC ポーズ</div><div class="fps-panel fps-weapon"><small>INK RIFLE / AUTO</small><b id="fpsAmmo">30 / ∞</b><small id="fpsAbility">AIR DASH READY</small></div></div>
+    </div>
+    <div id="fpsMenu" hidden><div class="fps-menu-card"><div class="fps-caption">FIELD NOTES / REAL CITY</div><h2>INKBOUND <span id="fpsPlaceTitle">山形駅西口</span></h2><p id="fpsIntro">山形駅西口の実際の道路と建物を舞台に、ドローンを撃破してWaveを進めよう。建物の高さ・屋上はOSM情報をもとにした推定を含みます。</p><p class="fps-menu-controls">WASD: 移動　/　SPACE: ジャンプ<br>左クリック: 射撃　/　E: 建物にグラップル<br>SHIFT: ダッシュ　/　R: リロード　/　ESC: ポーズ</p><div class="fps-menu-actions"><button class="primary" id="fpsResume">▶ 戦闘開始</button><button id="fpsExit">地図モードに戻る</button><button id="fpsCopyLink">🔗 FPS専用URLをコピー</button></div><p id="fpsMsg" class="help">PC用キーボード・マウス操作。ゲームは読み込んだ地図範囲内で動作します。</p></div></div>
   </main>
   <aside>
     <section>
@@ -113,10 +141,10 @@
     <section>
       <h2>04 · 書き出し <em>EXPORT</em></h2>
       <div class="chips"><button id="savePng" class="primary">↓ PNG 画像</button><button id="saveGlb" class="primary">↓ GLB 3D</button></div>
-      <div class="chips" style="margin-top:8px"><button id="copyLink">🔗 現在の場所を共有</button><button id="openOsm">↗ OSMで見る</button></div>
+      <div class="chips" style="margin-top:8px"><button id="copyLink">🔗 現在の場所を共有</button><button id="copyGameLink">🎮 FPS専用URL</button><button id="openOsm">↗ OSMで見る</button></div>
       <p class="help">PNGは現在の画面の解像度で保存します。GLBは街並みの3D形状を出力し、BlenderやUnityで利用できます。</p>
     </section>
-    <div class="note">v0.6.0：地上の線路と建物の重なりを判定し、線路部分の建物をくり抜きます。駅舎・上屋は高架状の構造として補完する場合があります。<strong>駅の内部構造・高さは実測ではありません。</strong> 窓台・集合住宅ベランダの立体表現を追加。OSMの単木・並木を取り込み、周辺の公園・歩道沿いの街路樹を推定補完。表示／密度切替と出典数の表示、樹木のインスタンス化で描画負荷を軽減。地図の左右反転を修正。真上表示は北が上・東が右です。道路の見え方を改善し、<strong>車道・歩道・道路輪郭・中央線・横断歩道</strong>を描画します。建物では線画の窓枠、大きな建物の窓・入口・階層線、OSMのbuilding:part・屋根情報を反映します。<strong>窓位置・道路細部・横断歩道の一部は推定</strong>です。現地の実測3Dモデルではありません。</div>
+    <div class="note">v0.7.2：検索した地名を地図取得中・ゲーム開始画面・HUDに反映し、FPS共有URLでも場所を復元。v0.7.1：ドローンの建物壁への衝突判定と迂回・上昇回避、直接FPSを開始する共有URLに対応。v0.7.0：INKBOUND FPS戦闘モードを追加（WASD、射撃、ジャンプ、ダッシュ、グラップリング、ドローンWave制、建物の壁・屋上衝突）。地図表示と切替可能。ゲーム操作はPCブラウザ推奨。v0.6.0までの改善：地上の線路と建物の重なりを判定し、線路部分の建物をくり抜きます。駅舎・上屋は高架状の構造として補完する場合があります。<strong>駅の内部構造・高さは実測ではありません。</strong> 窓台・集合住宅ベランダの立体表現を追加。OSMの単木・並木を取り込み、周辺の公園・歩道沿いの街路樹を推定補完。表示／密度切替と出典数の表示、樹木のインスタンス化で描画負荷を軽減。地図の左右反転を修正。真上表示は北が上・東が右です。道路の見え方を改善し、<strong>車道・歩道・道路輪郭・中央線・横断歩道</strong>を描画します。建物では線画の窓枠、大きな建物の窓・入口・階層線、OSMのbuilding:part・屋根情報を反映します。<strong>窓位置・道路細部・横断歩道の一部は推定</strong>です。現地の実測3Dモデルではありません。</div>
     <div class="footer">地図データ © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a> (ODbL)<br>3Dエンジン: three.js (MIT)／建物・道路: Overpass API<br>地名検索: Nominatim（公開APIの利用制限に従います）<br>単一HTML。初回の3Dライブラリ取得と地図データ取得にはインターネット接続が必要です。公開APIは混雑・通信制限で失敗する場合があります。</div>
   </aside>
 </div>
@@ -132,6 +160,18 @@ const detailStats={windows:0,doors:0,taggedHeights:0,parts:0,roofs:0,sills:0,bal
 const vegetationStats={mapped:0,treeRows:0,estimated:0};
 let timer=0;
 let cityRoot = new THREE.Group(); cityRoot.name='OSM Yamagata City';
+const gameColliders=[];
+// A coarse 32m spatial index keeps frame-time collision checks bounded as OSM areas grow.
+const gameCollisionGrid=new Map(), collisionCell=32;
+function collidersNear(x,z,r=1){
+ const list=[],seen=new Set(),x0=Math.floor((x-r)/collisionCell),x1=Math.floor((x+r)/collisionCell),z0=Math.floor((z-r)/collisionCell),z1=Math.floor((z+r)/collisionCell);
+ for(let i=x0;i<=x1;i++)for(let j=z0;j<=z1;j++)for(const c of gameCollisionGrid.get(i+','+j)||[]){if(!seen.has(c)){seen.add(c);list.push(c)}}
+ return list;
+}
+function indexGameColliders(){gameCollisionGrid.clear();for(const c of gameColliders){
+ const x0=Math.floor(c.bbox.minX/collisionCell),x1=Math.floor(c.bbox.maxX/collisionCell),z0=Math.floor(c.bbox.minY/collisionCell),z1=Math.floor(c.bbox.maxY/collisionCell);
+ for(let x=x0;x<=x1;x++)for(let z=z0;z<=z1;z++){const key=x+','+z;if(!gameCollisionGrid.has(key))gameCollisionGrid.set(key,[]);gameCollisionGrid.get(key).push(c)}
+ }}
 const pieces={building:[],roof:[],windowTrim:[],balcony:[],road:[],sidewalk:[],roadEdge:[],roadMark:[],crossing:[],rail:[],grass:[],tree:[],outline:[],window:[],windowEdge:[],detail:[],door:[],water:[]};
 const canvas=$('scene');
 const scene=new THREE.Scene(); scene.background=new THREE.Color(0xf5f3eb); scene.fog=new THREE.Fog(0xf5f3eb,450,1300);
@@ -169,7 +209,12 @@ function updateCompass(){
   const dx=compassTip.x-compassBase.x,dy=compassTip.y-compassBase.y;
   if(Math.hypot(dx,dy)>1e-6)compassNeedle.style.transform=`rotate(${Math.atan2(dx,dy)*180/Math.PI}deg)`;
 }
-function animate(){requestAnimationFrame(animate);controls.update();updateCompass();renderer.render(scene,camera)}animate();
+let lastAnim=performance.now(),accumulator=0;
+function animate(now){requestAnimationFrame(animate);const dt=Math.min(.06,Math.max(0,(now-lastAnim)/1000));lastAnim=now;
+ if(game.active){if(game.locked&&!game.dead){accumulator+=dt;let ticks=0;while(accumulator>=1/90&&ticks++<6){gameStep(1/90);accumulator-=1/90}}else accumulator=0;gameDraw(dt)}
+ else{controls.update();updateCompass()}
+ renderer.render(scene,camera)
+}requestAnimationFrame(animate);
 function toast(msg,ms=4600){$('toast').textContent=msg;$('toast').style.display='block';clearTimeout(timer);timer=setTimeout(()=>$('toast').style.display='none',ms)}
 function setBusy(b,title='',detail=''){$('busy').classList.toggle('show',b);if(title)$('busy-title').textContent=title;if(detail)$('busy-detail').textContent=detail;}
 function setStatus(s){$('loadstate').textContent=s}
@@ -482,6 +527,7 @@ function addClippedBuildingMesh(pts,fragments,base,top,tags,id){
  const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));geo.computeVertexNormals();
  const mat=colorMat(randomColor(tags,id),{side:THREE.DoubleSide}),mesh=new THREE.Mesh(geo,mat);
  mesh.userData.osmId=id;mesh.userData.originalColor=mat.color.getHex();registered(mesh,'building');
+ for(const poly of fragments.polys)if(poly.length>=3)gameColliders.push({pts:poly,base,top,bbox:bounds2(poly)});
  if(line.length){const edges=new THREE.BufferGeometry();edges.setAttribute('position',new THREE.Float32BufferAttribute(line,3));registered(new THREE.LineSegments(edges,new THREE.LineBasicMaterial({color:0x1e242a,transparent:true,opacity:1})),'outline');}
  return true;
 }
@@ -493,6 +539,7 @@ function addUpperStationSpan(pts,base,top,tags,id){
  const geo=new THREE.ExtrudeGeometry(shape,{depth:thickness,bevelEnabled:false,steps:1});geo.rotateX(-Math.PI/2);
  const mat=colorMat(randomColor(tags,id),{side:THREE.DoubleSide});
  const bridge=new THREE.Mesh(geo,mat);bridge.position.y=base;bridge.userData.osmId=id;bridge.userData.originalColor=mat.color.getHex();registered(bridge,'building');
+ gameColliders.push({pts,base,top,bbox:bounds2(pts)});
  const outline=new THREE.LineSegments(new THREE.EdgesGeometry(geo,25),new THREE.LineBasicMaterial({color:0x222222}));outline.position.y=base;registered(outline,'outline');
 }
 function railDistance(x,z){
@@ -536,6 +583,7 @@ function mkBuilding(el){
  const geo=new THREE.ExtrudeGeometry(shape,{depth:top-base,bevelEnabled:false,curveSegments:1,steps:1});geo.rotateX(-Math.PI/2);
  const mat=colorMat(randomColor(tags,el.id),{side:THREE.DoubleSide});const mesh=new THREE.Mesh(geo,mat);
  mesh.position.y=base;mesh.userData.osmId=el.id;mesh.userData.originalColor=mat.color.getHex();registered(mesh,'building');
+ gameColliders.push({pts,base,top,bbox:bounds2(pts)});
  const outline=new THREE.LineSegments(new THREE.EdgesGeometry(geo,25),new THREE.LineBasicMaterial({color:0x1e242a,transparent:true,opacity:1}));outline.position.y=base;registered(outline,'outline');
  if(meters(tags.height)!==null||meters(tags['building:levels'])!==null)detailStats.taggedHeights++;
  if(tags['building:part'])detailStats.parts++;
@@ -759,7 +807,7 @@ function clearCity(){for(const key of Object.keys(pieces)){for(const obj of piec
  }pieces[key].length=0;}}
 function buildWorld(elements,preserveCamera=false){
  const savedPosition=camera.position.clone(),savedTarget=controls.target.clone();
- clearCity();newDetailBuffer();let buildings=0,roads=0,trees=0,railways=0;
+ clearCity();gameColliders.length=0;gameCollisionGrid.clear();newDetailBuffer();let buildings=0,roads=0,trees=0,railways=0;
  const park=[],road=[],rail=[],building=[],parts=[],nodes=[],treeRows=[],plantingAreas=[];
  for(const el of elements){const t=el.tags||{};
   if(el.type==='node'&&t.natural==='tree')nodes.push(el);
@@ -793,6 +841,7 @@ function buildWorld(elements,preserveCamera=false){
  for(const e of rail)if(mkRail(e))railways++;
  for(const e of [...visibleBuildings,...parts])if(mkBuilding(e))buildings++;
  flushDetails();
+ indexGameColliders();
  trees=buildVegetation(nodes,treeRows,plantingAreas,road,rail,[...visibleBuildings,...parts]);
  state.buildings=buildings;state.roads=roads;state.trees=trees;state.loaded=true;state.data=elements;
  $('buildingCount').textContent=buildings.toLocaleString();$('roadCount').textContent=roads.toLocaleString();$('treeCount').textContent=trees.toLocaleString();
@@ -801,6 +850,7 @@ function buildWorld(elements,preserveCamera=false){
  $('railInfo').textContent=$('avoidRailCollision').checked?`線路と重なった建物 ${railRepair.buildings}棟 ／ 地上の線路部分を除去 ${railRepair.cutouts}棟 ／ 駅舎の上部構造を推定 ${railRepair.stationBridges}棟 ／ 全体を省略 ${railRepair.skipped}棟。橋・トンネルの線路は除外。`: '重なり補正はオフです。OSMの建物が線路を塞ぐ場合があります。';
  $('buildingInfo').textContent=`生成した窓 ${detailStats.windows.toLocaleString()}個 ／ 入口 ${detailStats.doors} ／ OSMに高さ・階数情報あり ${detailStats.taggedHeights}/${buildings}棟 ／ 窓台 ${detailStats.sills} ／ ベランダ ${detailStats.balconies} ／ 建物部分 ${detailStats.parts}件 ／ 立体屋根 ${detailStats.roofs}件`;
  applyStyle();
+ $('gameBtn').disabled=false;
  if(preserveCamera){camera.position.copy(savedPosition);controls.target.copy(savedTarget);controls.update()}
  else setCameraView('bird');
 }
@@ -846,10 +896,23 @@ function applyStyle(){const style=state.style,shade=Number($('shade').value)/100
  for(const btn of document.querySelectorAll('#styles [data-style]'))btn.classList.toggle('active',btn.dataset.style===style);
 }
 function mapLink(){const gap=0.0045;const b=[state.lon-gap,state.lat-gap*.7,state.lon+gap,state.lat+gap*.7].join('%2C');return `https://www.openstreetmap.org/export/embed.html?bbox=${b}&layer=mapnik&marker=${state.lat}%2C${state.lon}`}
+function placeName(){return String(state.name||'指定した座標').trim()||'指定した座標'}
+function syncPlaceLabels(){
+ const name=placeName();
+ $('fpsPlaceTitle').textContent=name;
+ $('fpsHudPlace').textContent=`INKBOUND / ${name}`;
+ $('fpsIntro').textContent=`${name}の街を戦場に、追跡ドローンと戦おう。建物の高さ・屋上はOSM情報をもとにした推定を含みます。`;
+ document.title=`${game.active?'INKBOUND':'街並みスケッチ 3D v0.7.2'} | ${name}`;
+}
 function updatePlaceUI(){
  $('lat').value=state.lat;$('lon').value=state.lon;$('radius').value=state.radius;
- $('placetag').innerHTML='';$('placetag').append(document.createTextNode(state.name));const small=document.createElement('small');small.textContent=`山形市付近 · ${state.lat.toFixed(7)}, ${state.lon.toFixed(7)}`;$('placetag').append(small);
- $('minimap').src=mapLink();const hash=`ll=${state.lat.toFixed(7)},${state.lon.toFixed(7)}&s=${state.radius}&n=${encodeURIComponent(state.name)}`;history.replaceState(null,'','#'+hash);
+ $('placetag').replaceChildren(document.createTextNode(placeName()));
+ const small=document.createElement('small');small.textContent=`北緯 ${state.lat.toFixed(7)} · 東経 ${state.lon.toFixed(7)}`;$('placetag').append(small);
+ if(placeName()!=='指定した座標')$('searchText').value=placeName();
+ $('minimap').title=`${placeName()}周辺のOpenStreetMap地図`;
+ $('minimap').src=mapLink();
+ syncPlaceLabels();
+ const hash=`ll=${state.lat.toFixed(7)},${state.lon.toFixed(7)}&s=${state.radius}&n=${encodeURIComponent(placeName())}`;history.replaceState(null,'','#'+hash);
 }
 function safeCacheRead(key){try{const s=localStorage.getItem(key);if(!s)return null;const x=JSON.parse(s);if(Date.now()-x.time>24*3600*1000)return null;return x.elements}catch{return null}}
 function safeCacheWrite(key,elements){try{localStorage.setItem(key,JSON.stringify({time:Date.now(),elements}));}catch{/* Storage unavailable */}}
@@ -880,7 +943,7 @@ async function fetchOverpass(query){
   const timeout=setTimeout(()=>ctrl.abort(),24000);
   setStatus(`接続中 ${i+1}/${servers.length}`);
   $('networkInfo').textContent=`${server.name} に接続中（${i+1}/${servers.length}）…`;
-  setBusy(true,'山形駅周辺の地図データを取得中',`${server.name} に問い合わせています。失敗すると次の取得先を試します。`);
+  setBusy(true,`${placeName()}の地図データを取得中`,`${server.name} に問い合わせています。失敗すると次の取得先を試します。`);
   try{
    const resp=await fetch(server.url,{
     method:'POST',
@@ -903,11 +966,16 @@ async function fetchOverpass(query){
  }
  throw new Error(errors.join(' / '));
 }
-async function loadCity(){
+async function loadCity(explicitPlaceName){
+ if(game.active)leaveGame();
+ $('gameBtn').disabled=true;
  const id=++activeLoad;const lat=Number($('lat').value),lon=Number($('lon').value),radius=Number($('radius').value);
  if(!Number.isFinite(lat)||lat<-90||lat>90||!Number.isFinite(lon)||lon<-180||lon>180){toast('緯度・経度の入力を確認してください');return}
+ const coordsChanged=Math.abs(lat-state.lat)>1e-7||Math.abs(lon-state.lon)>1e-7;
+ if(typeof explicitPlaceName==='string'&&explicitPlaceName.trim())state.name=explicitPlaceName.trim();
+ else if(coordsChanged)state.name='指定した座標';
  state.lat=lat;state.lon=lon;state.radius=radius;state.loaded=false;updatePlaceUI();
- setBusy(true,'実際の街並みを読み込み中','OpenStreetMapの建物・道路を取得しています。公開APIの混雑時には時間がかかる場合があります。');setStatus('データを取得中');
+ setBusy(true,`${placeName()}の街並みを読み込み中`,'OpenStreetMapの建物・道路を取得しています。公開APIの混雑時には時間がかかる場合があります。');setStatus('データを取得中');
  const cacheKey=`cityscout:v5:${lat.toFixed(5)},${lon.toFixed(5)},${radius}`;
  try {
   let elements=safeCacheRead(cacheKey);
@@ -926,31 +994,269 @@ async function loadCity(){
   if(elements.length===0)throw new Error('この範囲には地図データがありません');
   if(fromCache)$('networkInfo').textContent=`キャッシュから読み込み：${elements.length.toLocaleString()}件`;
   buildWorld(elements);setStatus('読み込み完了');toast('街並みの3D生成が完了しました');
+  if(new URLSearchParams(location.search).get('mode')==='inkbound'&&!game.active)gameEnter();
  } catch(e){if(id!==activeLoad)return;setStatus('取得エラー');toast('読み込みに失敗しました。詳しい内容は「取得先」の下に表示しています。',8500);$('networkInfo').textContent='エラー：'+e.message+'。接続先を変更するか、範囲を180mにして再試行してください。';console.error(e);
  } finally{if(id===activeLoad)setBusy(false)}
 }
 async function searchPlace(){const q=$('searchText').value.trim();if(!q){toast('地名か緯度経度を入力してください');return}
  const match=q.match(/^\s*(-?\d+(?:\.\d+)?)\s*[,， ]\s*(-?\d+(?:\.\d+)?)\s*$/);
- if(match){$('lat').value=match[1];$('lon').value=match[2];state.name='指定した座標';await loadCity();return}
+ if(match){$('lat').value=match[1];$('lon').value=match[2];await loadCity('指定した座標');return}
  if(/山形駅.*西口|西口.*山形駅/.test(q)){resetToStart();return}
- setBusy(true,'場所を検索中','Nominatimで地名・住所を検索しています。');
+ setBusy(true,`「${q}」を検索中`,'Nominatimで地名・住所を検索しています。');
  try{const r=await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=3&accept-language=ja&q='+encodeURIComponent(q));if(!r.ok)throw new Error('HTTP '+r.status);
- const data=await r.json();if(!data.length)throw new Error('場所が見つかりません');const p=data[0];state.name=(p.display_name||q).split(',').slice(0,2).join(',');$('lat').value=p.lat;$('lon').value=p.lon;await loadCity();}
+ const data=await r.json();if(!data.length)throw new Error('場所が見つかりません');const p=data[0];const newPlaceName=(p.display_name||q).split(',').slice(0,2).join(',').trim();$('lat').value=p.lat;$('lon').value=p.lon;await loadCity(newPlaceName);}
  catch(e){toast('地名検索エラー：'+e.message,6000);setBusy(false)}
 }
-function resetToStart(){$('lat').value=START.lat;$('lon').value=START.lon;$('radius').value=280;$('searchText').value='山形駅 西口';state.name=START.name;loadCity()}
+function resetToStart(){$('lat').value=START.lat;$('lon').value=START.lon;$('radius').value=280;$('searchText').value='山形駅 西口';state.name=START.name;loadCity(START.name)}
 function turnCam(angle){const vec=camera.position.clone().sub(controls.target);vec.applyAxisAngle(new THREE.Vector3(0,1,0),angle);camera.position.copy(controls.target).add(vec);controls.update()}
 function saveFile(blob,name){const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download=name;document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),15000)}
+function exportBaseName(){return `cityscout-${state.lat.toFixed(5)}_${state.lon.toFixed(5)}`}
 function pngSave(){if(!state.loaded){toast('地図の読み込み後に画像を書き出せます');return}
  renderer.render(scene,camera);const im=new Image();im.onload=()=>{const c=document.createElement('canvas');c.width=im.width;c.height=im.height;const cx=c.getContext('2d');cx.drawImage(im,0,0);
  const fs=Math.max(12,Math.round(c.width*.012));cx.font=`${fs}px sans-serif`;cx.textAlign='right';const label='© OpenStreetMap contributors';const measure=cx.measureText(label).width;cx.fillStyle='#ffffffcc';cx.fillRect(c.width-measure-21,c.height-fs-16,measure+13,fs+12);cx.fillStyle='#172631';cx.fillText(label,c.width-15,c.height-15);
- c.toBlob(blob=>{if(blob)saveFile(blob,'cityscout-yamagata-west.png');else toast('PNGへの変換に失敗しました')},'image/png')};im.onerror=()=>toast('画像の生成に失敗しました');im.src=renderer.domElement.toDataURL('image/png')}
+ c.toBlob(blob=>{if(blob)saveFile(blob,exportBaseName()+'.png');else toast('PNGへの変換に失敗しました')},'image/png')};im.onerror=()=>toast('画像の生成に失敗しました');im.src=renderer.domElement.toDataURL('image/png')}
 async function glbSave(){if(!state.loaded){toast('地図の読み込み後にGLBを書き出せます');return}
  setBusy(true,'GLBモデルを書き出し中','表示中の街の3D形状を変換しています。');
- try{const exporter=new GLTFExporter();const result=await exporter.parseAsync(cityRoot,{binary:true,onlyVisible:true,truncateDrawRange:true});saveFile(new Blob([result],{type:'model/gltf-binary'}),'cityscout-yamagata-west.glb');toast('GLBを書き出しました')}
+ try{const exporter=new GLTFExporter();const result=await exporter.parseAsync(cityRoot,{binary:true,onlyVisible:true,truncateDrawRange:true});saveFile(new Blob([result],{type:'model/gltf-binary'}),exportBaseName()+'.glb');toast('GLBを書き出しました')}
  catch(e){console.error(e);toast('GLBの出力に失敗しました：'+e.message,6500)}finally{setBusy(false)}
 }
 function setLens(mm){camera.fov=THREE.MathUtils.radToDeg(2*Math.atan(36/(2*Number(mm))));camera.updateProjectionMatrix()}
+
+// INKBOUND FPS integration. Game models live outside cityRoot, so GLB exports remain unchanged.
+const game={active:false,locked:false,dead:false,started:false,keys:Object.create(null),fire:false,player:new THREE.Vector3(),vel:new THREE.Vector3(),yaw:0,pitch:0,eye:1.7,grounded:true,airDash:true,dash:0,slide:0,grapple:null,
+ hp:100,score:0,wave:0,ammo:30,reloading:0,shotCool:0,muzzleTime:0,hitTime:0,hurtTime:0,noticeTime:0,waveDelay:1.2,time:0,drones:[],bullets:[],effects:[]};
+const gameRoot=new THREE.Group();gameRoot.name='INKBOUND gameplay (not included in GLB export)';scene.add(gameRoot);
+const inkBlue=0x194d9b,inkPaper=0xf7f3e7;
+const gPaper=new THREE.MeshStandardMaterial({color:0xf0ecdf,roughness:1}),gBlue=new THREE.MeshStandardMaterial({color:inkBlue,roughness:.9}),gLine=new THREE.LineBasicMaterial({color:inkBlue});
+function gameBox(w,h,d,x,y,z,mat=gPaper,parent=gameRoot){const geo=new THREE.BoxGeometry(w,h,d),mesh=new THREE.Mesh(geo,mat);mesh.position.set(x,y,z);parent.add(mesh);return mesh}
+const gun=new THREE.Group();gun.position.set(.39,-.34,-.64);camera.add(gun);scene.add(camera);
+for(const [w,h,d,x,y,z,mat] of [[.23,.2,.73,0,0,0,gPaper],[.09,.08,.55,0,.07,-.58,gBlue],[.16,.29,.14,0,-.2,.18,gBlue],[.2,.17,.27,0,-.02,.32,gPaper]]){
+ const mesh=gameBox(w,h,d,x,y,z,mat.clone(),gun);mesh.material.depthTest=false;mesh.material.depthWrite=false;mesh.renderOrder=99;
+ const edgeMat=gLine.clone();edgeMat.depthTest=false;edgeMat.depthWrite=false;const edges=new THREE.LineSegments(new THREE.EdgesGeometry(mesh.geometry),edgeMat);edges.renderOrder=100;mesh.add(edges);
+}
+const muzzle=new THREE.Mesh(new THREE.ConeGeometry(.13,.38,5),new THREE.MeshBasicMaterial({color:0xffb84b,depthTest:false}));muzzle.rotation.x=-Math.PI/2;muzzle.position.set(0,.035,-.96);gun.add(muzzle);
+const ropeGeometry=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(),new THREE.Vector3()]);const rope=new THREE.Line(ropeGeometry,gLine);gameRoot.add(rope);rope.visible=false;gun.visible=false;
+const hitRay=new THREE.Raycaster(),downAxis=new THREE.Vector3(0,-1,0);
+const gameForward=new THREE.Vector3(),gameRight=new THREE.Vector3(),gameWish=new THREE.Vector3();
+const radiusPlayer=.35,bodyHeight=1.75;
+// A local collision test against polygonal building footprints. y is the feet height.
+function insideBuilding(x,z,feetY,margin=radiusPlayer){
+ for(const c of collidersNear(x,z,margin)) {
+  if(feetY+bodyHeight<c.base+.02||feetY>c.top-.06)continue;
+  if(x<c.bbox.minX-margin||x>c.bbox.maxX+margin||z<c.bbox.minY-margin||z>c.bbox.maxY+margin)continue;
+  if(pointInPolygon([x,z],c.pts))return true;
+  if(margin<=0)continue;
+  for(let i=0;i<c.pts.length;i++){
+   const a=c.pts[i],b=c.pts[(i+1)%c.pts.length],dx=b[0]-a[0],dz=b[1]-a[1],ll=dx*dx+dz*dz;
+   if(ll<1e-8)continue;const t=THREE.MathUtils.clamp(((x-a[0])*dx+(z-a[1])*dz)/ll,0,1);
+   if(Math.hypot(x-a[0]-dx*t,z-a[1]-dz*t)<margin)return true;
+  }
+ }
+ return false;
+}
+function roofAt(x,z,maxY=Infinity){let floor=0;
+ for(const c of collidersNear(x,z,0)){if(c.top>maxY+.12||c.top<floor||x<c.bbox.minX||x>c.bbox.maxX||z<c.bbox.minY||z>c.bbox.maxY)continue;
+  if(pointInPolygon([x,z],c.pts))floor=c.top;
+ }
+ return floor;
+}
+function findSafeSpawn(){const options=[[0,0],[-8,0],[8,0],[0,-8],[0,8],[-16,12],[16,12],[25,0],[-25,0]];
+ for(let ring=0;ring<11;ring++)for(let n=0;n<24;n++){
+  const a=n*Math.PI*2/24,p=ring===0?options[n%options.length]:[Math.sin(a)*(ring*8),Math.cos(a)*(ring*8)];
+  if(!insideBuilding(p[0],p[1],.05,1.1)&&!railDistance(p[0],p[1]))return new THREE.Vector3(p[0],.12,p[1]);
+ }return new THREE.Vector3(0,Math.max(2,roofAt(0,0,1e6)),0);
+}
+function setGameNotice(t,duration=2){$('fpsNotice').textContent=t;game.noticeTime=duration}
+function clearGameObjects(){for(const d of game.drones){gameRoot.remove(d.root);d.root.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material&&![gPaper,gBlue,gLine].includes(o.material))o.material.dispose()})}game.drones.length=0;
+ for(const b of game.bullets){gameRoot.remove(b.mesh);b.mesh.geometry.dispose();b.mesh.material.dispose()}game.bullets.length=0;
+ for(const e of game.effects){gameRoot.remove(e.mesh);e.mesh.geometry.dispose();e.mesh.material.dispose()}game.effects.length=0;
+}
+function gameReset(){clearGameObjects();game.player.copy(findSafeSpawn());game.vel.set(0,0,0);game.yaw=0;game.pitch=0;game.eye=1.7;game.grounded=true;game.airDash=true;game.dash=0;game.slide=0;game.grapple=null;
+ game.hp=100;game.score=0;game.wave=0;game.ammo=30;game.reloading=0;game.shotCool=0;game.hurtTime=0;game.hitTime=0;game.waveDelay=1;game.dead=false;game.started=true;game.time=0;setGameNotice(`${placeName()} · INKBOUND`,2.5);
+}
+function clearKeys(){game.keys=Object.create(null);game.fire=false;game.grapple=null;rope.visible=false}
+function gameAim(){camera.position.copy(game.player).add(new THREE.Vector3(0,game.eye,0));camera.rotation.order='YXZ';camera.rotation.set(game.pitch,game.yaw,0,'YXZ');camera.updateMatrixWorld(true)}
+function gameModeUrl(){
+ const url=new URL(window.location.href);url.searchParams.set('mode','inkbound');return url.toString();
+}
+function setGameUrlMode(enabled){
+ try{const url=new URL(window.location.href);if(enabled)url.searchParams.set('mode','inkbound');else url.searchParams.delete('mode');history.replaceState(null,'',url.toString())}catch(e){console.warn('URL更新不可',e)}
+}
+async function copyGameModeUrl(){
+ const link=gameModeUrl();
+ try{await navigator.clipboard.writeText(link);toast('FPS専用URLをコピーしました。開くとゲーム開始画面を表示します。')}
+ catch{window.prompt('FPS専用URL（コピーしてください）',link)}
+}
+function gameEnter(){if(!state.loaded){toast('先に地図を読み込んでください');return}
+ if(game.active)return;
+ setGameUrlMode(true);
+ controls.enabled=false;game.active=true;game.locked=false;syncPlaceLabels();gameReset();document.querySelector('.app').classList.add('fps');$('fpsHud').hidden=false;$('fpsMenu').hidden=false;$('fpsResume').textContent='▶ 戦闘開始';syncPlaceLabels();$('fpsMsg').textContent='クリックでマウスを固定します。ESCで一時停止。';gun.visible=true;$('gameBtn').textContent='✕ 地図へ戻る';gameAim();
+}
+function requestGameLock(){if(!game.active)return;try{const promise=canvas.requestPointerLock();if(promise?.catch)promise.catch(()=>{$('fpsMsg').textContent='マウス固定がブロックされました。Chrome等で開いて再度お試しください。'})}catch(e){$('fpsMsg').textContent='マウス固定に失敗しました：'+e.message}}
+function leaveGame(){if(!game.active)return;setGameUrlMode(false);game.active=false;game.locked=false;clearKeys();clearGameObjects();gun.visible=false;$('gameBtn').textContent='▶ INKBOUND FPS';syncPlaceLabels();$('fpsHud').hidden=true;$('fpsMenu').hidden=true;document.querySelector('.app').classList.remove('fps');controls.enabled=true;camera.rotation.order='XYZ';setCameraView('bird');if(document.pointerLockElement===canvas)document.exitPointerLock();
+}
+function gameDirection(){gameForward.set(-Math.sin(game.yaw),0,-Math.cos(game.yaw));gameRight.set(Math.cos(game.yaw),0,-Math.sin(game.yaw));gameWish.set(0,0,0)
+ .addScaledVector(gameForward,(game.keys.KeyW?1:0)-(game.keys.KeyS?1:0))
+ .addScaledVector(gameRight,(game.keys.KeyD?1:0)-(game.keys.KeyA?1:0));if(gameWish.lengthSq()>0)gameWish.normalize();}
+function gameMove(dt){const prevY=game.player.y;game.grounded=false;
+ for(const axis of ['x','z']){const amount=game.vel[axis]*dt;if(Math.abs(amount)<1e-8)continue;game.player[axis]+=amount;
+  if(insideBuilding(game.player.x,game.player.z,game.player.y)){game.player[axis]-=amount;game.vel[axis]=0}
+ }
+ game.player.y+=game.vel.y*dt;
+ // Allow roof landings from above, but never teleport up through a ceiling.
+ if(game.vel.y<=0){const floor=roofAt(game.player.x,game.player.z,prevY+.07);
+  if(prevY>=floor-.07&&game.player.y<=floor+.04){game.player.y=floor;game.vel.y=0;game.grounded=true;game.airDash=true;game.dash=0}
+ }else{
+  for(const c of collidersNear(game.player.x,game.player.z,0)){if(c.base<=prevY+bodyHeight||c.base>game.player.y+bodyHeight||!pointInPolygon([game.player.x,game.player.z],c.pts))continue;
+   game.player.y=c.base-bodyHeight-.05;game.vel.y=0;break;}
+ }
+ if(game.player.y< -10){game.player.copy(findSafeSpawn());game.vel.set(0,0,0);gameDamage(25)}
+}
+function gameReload(){if(game.ammo<30&&game.reloading<=0){game.reloading=1.25;setGameNotice('RELOADING',.7)}}
+function rayEnvironment(){return pieces.building.concat(pieces.roof)}
+function gameShoot(){if(game.shotCool>0||game.reloading>0)return;if(game.ammo<=0){gameReload();return}
+ game.ammo--;game.shotCool=.115;game.muzzleTime=.055;gameAim();hitRay.setFromCamera(new THREE.Vector2(),camera);hitRay.far=140;
+ const hits=hitRay.intersectObjects([...rayEnvironment(),...game.drones.map(d=>d.body)],false);
+ const h=hits[0];if(h?.object.userData.drone){const drone=h.object.userData.drone;drone.hp-=40;game.hitTime=.16;
+  if(drone.hp<=0){game.score+=100;removeDrone(drone);setGameNotice('+100 / DRONE DOWN',.65)}
+ }else if(h){const mesh=new THREE.Mesh(new THREE.SphereGeometry(.09,5,4),new THREE.MeshBasicMaterial({color:inkBlue}));mesh.position.copy(h.point);gameRoot.add(mesh);game.effects.push({mesh,ttl:.28})}
+ if(game.ammo===0)gameReload();
+}
+function removeDrone(d){const i=game.drones.indexOf(d);if(i>=0)game.drones.splice(i,1);gameRoot.remove(d.root);d.root.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material&&!([gPaper,gBlue,gLine].includes(o.material)))o.material.dispose()})}
+function spawnDrones(){game.wave++;game.waveDelay=3;const count=Math.min(4+game.wave*2,18);
+ for(let i=0;i<count;i++){
+  const a=(i/count)*Math.PI*2+game.wave*.71,dist=24+(i%4)*10;
+  const x=THREE.MathUtils.clamp(game.player.x+Math.cos(a)*dist,-state.radius*.9,state.radius*.9);
+  const z=THREE.MathUtils.clamp(game.player.z+Math.sin(a)*dist,-state.radius*.9,state.radius*.9);
+  const roof=roofAt(x,z,120),root=new THREE.Group();root.position.set(x,Math.max(roof+5,game.player.y+9)+i%3,z);gameRoot.add(root);
+  const body=new THREE.Mesh(new THREE.IcosahedronGeometry(.75,1),new THREE.MeshStandardMaterial({color:0xe1e9f5,flatShading:true}));body.add(new THREE.LineSegments(new THREE.EdgesGeometry(body.geometry),gLine));root.add(body);
+  const eye=gameBox(.65,.17,.16,0,.1,.69,gBlue,root),halo=gameBox(1.15,.07,.19,0,-.52,0,gBlue,root);
+  const drone={root,body,eye,halo,hp:100+game.wave*12,cool:1+Math.random()*1.3,seed:i};body.userData.drone=drone;game.drones.push(drone)
+ }setGameNotice('WAVE '+game.wave+' / '+count+' DRONES',2.4)
+}
+function gameDamage(amount){if(game.dead)return;game.hp=Math.max(0,game.hp-amount);game.hurtTime=.38;if(game.hp<=0){game.dead=true;clearKeys();$('fpsIntro').textContent=`GAME OVER · SCORE ${game.score} · WAVE ${game.wave}`;$('fpsResume').textContent='↺ リトライ';$('fpsMsg').textContent='再挑戦するか、地図モードに戻れます。';if(document.pointerLockElement===canvas)document.exitPointerLock();else $('fpsMenu').hidden=false}}
+function gameProjectiles(dt){for(let i=game.bullets.length-1;i>=0;i--){const b=game.bullets[i];b.mesh.position.addScaledVector(b.vel,dt);b.ttl-=dt;
+ const pos=b.mesh.position,dist=pos.distanceTo(game.player.clone().add(new THREE.Vector3(0,1.1,0)));
+ if(dist<.9){gameDamage(7);b.ttl=0}
+ if(insideBuilding(pos.x,pos.z,pos.y,.1))b.ttl=0;
+ if(b.ttl<=0){gameRoot.remove(b.mesh);b.mesh.geometry.dispose();b.mesh.material.dispose();game.bullets.splice(i,1)}
+ }}
+// 3D drone volume vs. OSM-derived building footprints and their height intervals.
+// Sweep between frames to prevent tunnelling, including narrow walls and aerial walkways.
+const droneRadius=.84;
+function droneBarriers(x,y,z,r=droneRadius){
+ const hits=[];
+ for(const c of collidersNear(x,z,r)){
+  if(y+r<=c.base+.01||y-r>=c.top-.01)continue;
+  if(x<c.bbox.minX-r||x>c.bbox.maxX+r||z<c.bbox.minY-r||z>c.bbox.maxY+r)continue;
+  if(pointInPolygon([x,z],c.pts)){hits.push(c);continue}
+  for(let i=0;i<c.pts.length;i++){
+   if(pointToSegmentDistSq(x,z,c.pts[i],c.pts[(i+1)%c.pts.length])<r*r){hits.push(c);break}
+  }
+ }
+ return hits;
+}
+function droneMoveClear(start,end,r=droneRadius){
+ const length=start.distanceTo(end),steps=Math.max(1,Math.ceil(length/.42));
+ for(let i=1;i<=steps;i++){
+  const t=i/steps,x=start.x+(end.x-start.x)*t,y=start.y+(end.y-start.y)*t,z=start.z+(end.z-start.z)*t;
+  if(droneBarriers(x,y,z,r).length)return false;
+ }
+ return true;
+}
+const dTry=new THREE.Vector3(),dSide=new THREE.Vector3(),dTarget=new THREE.Vector3();
+function driveDrone(d,dt){
+ const pos=d.root.position;
+ // A brief look-ahead makes the drone rise BEFORE touching a wall, not after crossing it.
+ dTarget.copy(game.player).add(new THREE.Vector3(0,3.5,0));
+ const toward=dTarget.clone().sub(pos),distance=toward.length();if(distance<=3)return;
+ const speed=Math.min(3+game.wave*.19,6),step=Math.min(speed*dt,distance);
+ toward.divideScalar(distance);
+ dTry.copy(pos).addScaledVector(toward,step);
+ // Prevent flying inside a taller building when moving downward toward the player.
+ if(droneMoveClear(pos,dTry)){pos.copy(dTry);d.avoidAltitude=0;return}
+ const probe=pos.clone().addScaledVector(toward,Math.min(3.6,Math.max(2.4,speed*.65)));
+ const obstructing=droneBarriers(probe.x,probe.y,probe.z).concat(droneBarriers(dTry.x,dTry.y,dTry.z));
+ const highest=obstructing.reduce((m,c)=>Math.max(m,c.top),0);
+ const horizontal=Math.hypot(toward.x,toward.z);
+ const riseHeight=highest+droneRadius+1.35;
+ // Prefer climbing over nearby lower roofs. For tall obstacles try sliding along the facade.
+ if(highest>0&&riseHeight-pos.y<9){
+  d.avoidAltitude=Math.max(d.avoidAltitude||0,riseHeight);
+ }
+ if((d.avoidAltitude||0)<=pos.y+.2&&horizontal>.06){
+  const sx=-toward.z/horizontal,sz=toward.x/horizontal;
+  const chosen=d.avoidSide||1;
+  for(const side of [chosen,-chosen]){
+   dSide.set(sx*side*step*.96,Math.max(-step*.12,Math.min(step*.12,toward.y*step)),sz*side*step*.96);
+   dTry.copy(pos).add(dSide);
+   if(droneMoveClear(pos,dTry)){pos.copy(dTry);d.avoidSide=side;return}
+  }
+ }
+ // Never advance into a wall; climb vertically until the route becomes traversable.
+ const climb=pos.clone().add(new THREE.Vector3(0,step,0));
+ if(droneMoveClear(pos,climb))pos.copy(climb);
+ // In rare overhangs, moving laterally can get the drone out from below the roof.
+ if((d.avoidAltitude||0)>0&&pos.y>d.avoidAltitude)d.avoidAltitude=0;
+}
+function gameDrones(dt){for(const d of game.drones){
+ const pos=d.root.position;driveDrone(d,dt);
+ const dist=pos.distanceTo(game.player.clone().add(new THREE.Vector3(0,3.5,0)));
+ d.root.lookAt(camera.position);d.body.rotation.z=Math.sin(game.time*3+d.seed)*.15;d.cool-=dt;
+ if(dist<3&&d.cool<=0){gameDamage(9);d.cool=1}
+ else if(dist<50&&d.cool<=0){
+  // Buildings block line of fire as well as movement.
+  const shotOrigin=pos.clone(),shotGoal=game.player.clone().add(new THREE.Vector3(0,1.2,0));
+  if(!droneMoveClear(shotOrigin,shotGoal,.22))continue;
+  const mesh=new THREE.Mesh(new THREE.SphereGeometry(.24,7,5),new THREE.MeshBasicMaterial({color:0x326fbc}));mesh.position.copy(pos);gameRoot.add(mesh);
+  const vel=shotGoal.sub(pos).normalize().multiplyScalar(13);game.bullets.push({mesh,vel,ttl:4.3});d.cool=1.6+Math.random()*1.0;
+ }
+}}
+function gameStep(dt){game.time+=dt;game.shotCool=Math.max(0,game.shotCool-dt);game.muzzleTime=Math.max(0,game.muzzleTime-dt);game.hitTime=Math.max(0,game.hitTime-dt);game.hurtTime=Math.max(0,game.hurtTime-dt);game.noticeTime=Math.max(0,game.noticeTime-dt);
+ if(game.reloading>0){game.reloading-=dt;if(game.reloading<=0){game.reloading=0;game.ammo=30}}
+ gameDirection();game.dash=Math.max(0,game.dash-dt);game.slide=Math.max(0,game.slide-dt);
+ if(game.grapple){const delta=game.grapple.clone().sub(game.player.clone().add(new THREE.Vector3(0,1,0)));if(delta.length()<1.7)game.grapple=null;
+ else{delta.normalize().multiplyScalar(25);game.vel.lerp(delta,1-Math.exp(-9*dt))}}
+ else if(game.dash<=0){const speed=game.grounded&&(game.keys.ShiftLeft||game.keys.ShiftRight)?12:7;
+  if(game.slide>0){game.vel.x*=Math.exp(-1.5*dt);game.vel.z*=Math.exp(-1.5*dt)}
+  else{const acceleration=game.grounded?18:4;const t=1-Math.exp(-acceleration*dt);game.vel.x=THREE.MathUtils.lerp(game.vel.x,gameWish.x*speed,t);game.vel.z=THREE.MathUtils.lerp(game.vel.z,gameWish.z*speed,t)}
+  game.vel.y-=24*dt;
+ }
+ gameMove(dt);game.eye=THREE.MathUtils.lerp(game.eye,game.slide>0?1:1.7,Math.min(1,dt*13));gameAim();if(game.fire)gameShoot();gameDrones(dt);gameProjectiles(dt);
+ for(let i=game.effects.length-1;i>=0;i--){const e=game.effects[i];e.ttl-=dt;if(e.ttl<=0){gameRoot.remove(e.mesh);e.mesh.geometry.dispose();e.mesh.material.dispose();game.effects.splice(i,1)}}
+ if(game.dead)return;
+ if(game.drones.length===0){game.waveDelay-=dt;if(game.waveDelay<=0){if(game.wave)game.hp=Math.min(100,game.hp+25);spawnDrones()}}
+}
+function gameDraw(dt){gameAim();gun.position.set(.39+Math.sin(game.time*10)*.012,-.34+Math.cos(game.time*19)*.009,-.64);muzzle.visible=game.muzzleTime>0;
+ rope.visible=!!game.grapple;if(game.grapple){ropeGeometry.attributes.position.setXYZ(0,game.player.x+.2,game.player.y+game.eye-.2,game.player.z);ropeGeometry.attributes.position.setXYZ(1,game.grapple.x,game.grapple.y,game.grapple.z);ropeGeometry.attributes.position.needsUpdate=true;ropeGeometry.computeBoundingSphere()}
+ $('fpsHP').textContent=Math.ceil(game.hp);$('fpsHealthBar').style.width=game.hp+'%';$('fpsScore').textContent=String(game.score).padStart(4,'0');$('fpsWave').textContent=String(game.wave).padStart(2,'0');$('fpsAmmo').textContent=game.reloading>0?'RELOADING…':game.ammo+' / ∞';$('fpsAbility').textContent=game.grapple?'GRAPPLE CONNECTED':game.airDash?'AIR DASH READY':'AIR DASH USED';$('fpsHit').style.opacity=game.hitTime>0?'1':'0';$('fpsHurt').style.opacity=String(game.hurtTime*1.5);if(game.noticeTime<=0)$('fpsNotice').textContent='';
+}
+$('gameBtn').addEventListener('click',()=>{if(!game.active)gameEnter();else leaveGame()});
+$('fpsResume').addEventListener('click',()=>{if(game.dead||!game.started)gameReset();requestGameLock()});
+$('fpsExit').addEventListener('click',leaveGame);
+$('fpsCopyLink').addEventListener('click',copyGameModeUrl);
+$('copyGameLink').addEventListener('click',copyGameModeUrl);
+document.addEventListener('pointerlockchange',()=>{
+ if(!game.active)return;game.locked=document.pointerLockElement===canvas;$('fpsMenu').hidden=game.locked;
+ if(!game.locked){clearKeys();$('fpsResume').textContent=game.dead?'↺ リトライ':'▶ 再開';$('fpsMsg').textContent=game.dead?'リトライできます。':'ESCで一時停止中。再開するとマウスを固定します。'}
+});
+document.addEventListener('pointerlockerror',()=>{if(game.active){$('fpsMsg').textContent='Pointer Lockに失敗。ブラウザの権限を確認してください。';$('fpsMenu').hidden=false}});
+document.addEventListener('mousemove',e=>{if(!game.locked||game.dead)return;game.yaw-=e.movementX*.002;game.pitch=THREE.MathUtils.clamp(game.pitch-e.movementY*.002,-1.48,1.48)});
+document.addEventListener('keydown',e=>{if(!game.active||!game.locked||game.dead)return;
+ const codes=['Space','ControlLeft','ControlRight','ShiftLeft','ShiftRight','KeyW','KeyA','KeyS','KeyD','KeyE','KeyR'];if(codes.includes(e.code))e.preventDefault();game.keys[e.code]=true;if(e.repeat)return;
+ if(e.code==='Space'&&game.grounded){game.vel.y=9.2;game.grounded=false}
+ if(e.code==='KeyR')gameReload();
+ if(e.code.startsWith('Shift')&&!game.grounded&&game.airDash){game.airDash=false;game.dash=.2;gameDirection();if(gameWish.lengthSq()<.1)gameWish.copy(gameForward);game.vel.x=gameWish.x*22;game.vel.z=gameWish.z*22;game.vel.y=Math.max(game.vel.y,1)}
+ if(e.code.startsWith('Control')&&game.grounded){game.slide=.6;gameDirection();game.vel.x=gameWish.x*14;game.vel.z=gameWish.z*14}
+ if(e.code==='KeyE'){gameAim();hitRay.setFromCamera(new THREE.Vector2(),camera);hitRay.far=46;const hit=hitRay.intersectObjects(rayEnvironment(),false)[0];if(hit&&hit.point.y>.5){game.grapple=hit.point.clone();game.grapple.y+=.5;game.grounded=false}else setGameNotice('建物を狙ってEを長押し / 46m',1.4)}
+});
+document.addEventListener('keyup',e=>{game.keys[e.code]=false;if(e.code==='KeyE')game.grapple=null});
+canvas.addEventListener('mousedown',e=>{if(game.locked&&e.button===0)game.fire=true});
+document.addEventListener('mouseup',e=>{if(e.button===0)game.fire=false});
+canvas.addEventListener('contextmenu',e=>{if(game.active)e.preventDefault()});
+window.addEventListener('blur',()=>{if(game.active&&game.locked)document.exitPointerLock();clearKeys()});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&game.active&&game.locked)document.exitPointerLock()});
+
 $('osmServer').addEventListener('change',()=>{$('networkInfo').textContent='取得先を切り替えました。「この範囲を生成」で再試行できます';});
 for(const id of ['detailLevel','generateVegetation','treeDensity','avoidRailCollision'])$(id).addEventListener('change',()=>{if(state.data){setStatus('外観を再生成中');buildWorld(state.data,true);setStatus('読み込み完了')}});
 $('searchBtn').addEventListener('click',searchPlace);$('searchText').addEventListener('keydown',e=>{if(e.key==='Enter')searchPlace()});$('loadBtn').addEventListener('click',loadCity);
@@ -962,8 +1268,15 @@ for(const id of ['shade','showWindows','showTrees','showRails','sky'])$(id).addE
 $('lens').addEventListener('change',e=>setLens(e.target.value));$('savePng').addEventListener('click',pngSave);$('saveGlb').addEventListener('click',glbSave);
 $('openOsm').addEventListener('click',()=>window.open(`https://www.openstreetmap.org/?mlat=${state.lat}&mlon=${state.lon}#map=17/${state.lat}/${state.lon}`,'_blank','noopener,noreferrer'));
 $('copyLink').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(location.href);toast('共有リンクをコピーしました')}catch{toast('この環境ではコピーできません。アドレスバーのURLをご利用ください')}});
-let hash;try{hash=new URLSearchParams(decodeURIComponent(location.hash.replace(/^#/,'')))}catch{}
-if(hash?.has('ll')){const coords=(hash.get('ll')||'').split(',').map(Number);if(coords.length===2&&coords.every(Number.isFinite)){$('lat').value=coords[0];$('lon').value=coords[1];state.name=hash.get('n')||'指定した座標'}if([180,280,450,650].includes(Number(hash.get('s'))))$('radius').value=hash.get('s')}
+let hash;try{hash=new URLSearchParams(location.hash.replace(/^#/,''))}catch{}
+if(hash?.has('ll')){
+ const coords=(hash.get('ll')||'').split(',').map(Number);
+ if(coords.length===2&&coords.every(Number.isFinite)&&coords[0]>=-90&&coords[0]<=90&&coords[1]>=-180&&coords[1]<=180){
+  state.lat=coords[0];state.lon=coords[1];state.name=hash.get('n')||'指定した座標';
+ }
+ const sharedRadius=Number(hash.get('s'));
+ if([180,280,450,650].includes(sharedRadius))state.radius=sharedRadius;
+}
 setLens($('lens').value);updatePlaceUI();loadCity();
 </script>
 </body>
