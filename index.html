@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#101927">
-  <title>街並みスケッチ 3D v0.8.0 | 山形駅西口</title>
+  <title>街並みスケッチ 3D v0.8.1 | 山形駅西口</title>
   <meta name="description" content="OpenStreetMapの建物・道路をブラウザで3D化。山形駅西口から街並みの線画、マンガ調の背景画像やGLBを作成できます。">
   <style>
     :root { color-scheme: dark; --bg:#0b111b; --panel:#111c2b; --panel2:#182638; --line:#2b3c51; --text:#edf3fc; --muted:#9bacbf; --accent:#71e0bc; --cyan:#82c9f7; --orange:#ffc875; }
@@ -64,6 +64,13 @@
     #buildingInspector a{color:#82d4f4}
     #buildingInspector button{padding:7px 8px;font-size:11px}
     #buildingInspector .field{margin:9px 0}
+    .building-dimensions{border:1px solid #35516b;border-radius:10px;background:#0d1d2c;padding:11px;margin:12px 0}
+    .building-dimensions .grid2{gap:9px}
+    .building-dimensions .field{margin:5px 0}
+    .building-dimensions input{width:100%}
+    .building-dimensions .form-row{flex-wrap:wrap;margin-top:8px}
+    .building-dimensions .form-row button{flex:1;white-space:nowrap}
+    .building-dimensions .help{margin:8px 0 0}
     .building-photo-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:12px}
     .building-photo{border:1px solid #39536d;border-radius:8px;padding:5px;background:#0c1928;min-width:0}
     .building-photo strong{display:block;text-align:center;font-size:11px;color:#d6e7f2;margin-bottom:5px}
@@ -127,7 +134,7 @@
 <div class="app">
   <header>
     <div class="logo">▥</div>
-    <div class="brand"><strong>街並みスケッチ 3D <small style="color:var(--accent);font-size:10px">v0.8.0</small></strong><span>OSM CITY SCOUT · 地図から街とゲームを生成</span></div>
+    <div class="brand"><strong>街並みスケッチ 3D <small style="color:var(--accent);font-size:10px">v0.8.1</small></strong><span>OSM CITY SCOUT · 地図から街とゲームを生成</span></div>
     <div class="header-tools"><span class="pill" id="loadstate">地図データを準備中</span><button class="primary small" id="gameBtn" disabled>▶ INKBOUND FPS</button><button class="small" id="resetPlace">↺ 西口に戻す</button></div>
   </header>
   <main class="viewer" id="viewer">
@@ -176,11 +183,21 @@
         <div class="b-meta"><a id="selectedBuildingOsm" href="#" target="_blank" rel="noopener noreferrer">OpenStreetMapで詳細を開く ↗</a></div>
         <div class="field"><label for="buildingAlias">表示名（OSMに未登録の場合も任意で保存可）</label>
           <div class="form-row"><input id="buildingAlias" type="text" maxlength="90" placeholder="例：〇〇ビル（この端末だけ）"><button id="saveBuildingAlias">保存</button></div></div>
+        <div class="building-dimensions" aria-label="建物の高さと階数の編集">
+          <strong style="display:block;font-size:12px;color:#d8fff3;margin-bottom:6px">高さ・階数を編集</strong>
+          <div class="grid2">
+            <div class="field"><label for="buildingHeightInput">高さ（m）</label><input id="buildingHeightInput" type="number" inputmode="decimal" min="2.1" max="600" step="0.1" placeholder="自動推定"></div>
+            <div class="field"><label for="buildingLevelsInput">階数（地上）</label><input id="buildingLevelsInput" type="number" inputmode="numeric" min="1" max="149" step="1" placeholder="未登録"></div>
+          </div>
+          <p class="help" id="buildingDimensionSource">OSMの登録値を表示します。空欄は元のデータまたは推定値を利用します。</p>
+          <div class="form-row"><button class="primary" id="saveBuildingDimensions">高さ・階数を保存して3Dに反映</button><button id="resetBuildingDimensions">元の値に戻す</button></div>
+          <p class="help" id="buildingDimensionStatus" role="status" aria-live="polite">保存した値はこのブラウザだけに反映されます。</p>
+        </div>
         <div class="building-photo-grid" id="buildingPhotoGrid" aria-label="建物写真"></div>
         <input id="buildingPhotoInput" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,image/*" hidden>
         <p id="buildingSaveStatus" class="help" aria-live="polite">正面・側面・背面の写真を1枚ずつ登録できます。</p>
         <button id="closeBuilding" class="small" style="margin-top:8px">選択を解除</button>
-        <p class="help">写真と表示名はこのブラウザ内だけに保存されます。写真からの自動3D生成は次の開発段階です。OSM上の建物名は変更しません。</p>
+        <p class="help">写真・表示名・高さ・階数の編集値はこのブラウザ内だけに保存されます。写真からの自動3D生成は次の開発段階です。OSMの元データは変更しません。</p>
       </div>
     </section>
     <section>
@@ -206,7 +223,7 @@
       <div class="chips" style="margin-top:8px"><button id="copyLink">🔗 短縮URLをコピー</button><button id="copyGameLink">🎮 FPS短縮URL</button><button id="openOsm">↗ OSMで見る</button></div>
       <p class="help">PNGは現在の画面の解像度で保存します。GLBは街並みの3D形状を出力し、BlenderやUnityで利用できます。</p>
     </section>
-    <div class="note">v0.8.0：建物をクリックしてOSMの名称・属性を表示。建物ごとの表示名と正面・側面・背面写真をIndexedDBへ保存（未対応ブラウザでは一時保存）。写真からの3D生成は次段階。v0.7.5：木にプレイヤー・敵ドローン・敵弾の衝突判定を追加。敵弾が木に当たると木と弾が両方消え、ゲーム再開時と地図に戻る際に植栽を復元します。v0.7.4：元のINKBOUNDに合わせてノート紙カード全体を傾斜、FPS画面の左下にOSM連動ミニマップ、WAVE/SCORE下に操作説明を移動。v0.7.3：INKBOUNDの傾斜ロゴとGitHub Pagesだけで利用できる短縮URL（#g=）を追加。短縮URLには座標・範囲・ゲーム指定を保存し、地名は表示用に逆引きします。v0.7.2：検索した地名を地図取得中・ゲーム開始画面・HUDに反映し、FPS共有URLでも場所を復元。v0.7.1：ドローンの建物壁への衝突判定と迂回・上昇回避、直接FPSを開始する共有URLに対応。v0.7.0：INKBOUND FPS戦闘モードを追加（WASD、射撃、ジャンプ、ダッシュ、グラップリング、ドローンWave制、建物の壁・屋上衝突）。地図表示と切替可能。ゲーム操作はPCブラウザ推奨。v0.6.0までの改善：地上の線路と建物の重なりを判定し、線路部分の建物をくり抜きます。駅舎・上屋は高架状の構造として補完する場合があります。<strong>駅の内部構造・高さは実測ではありません。</strong> 窓台・集合住宅ベランダの立体表現を追加。OSMの単木・並木を取り込み、周辺の公園・歩道沿いの街路樹を推定補完。表示／密度切替と出典数の表示、樹木のインスタンス化で描画負荷を軽減。地図の左右反転を修正。真上表示は北が上・東が右です。道路の見え方を改善し、<strong>車道・歩道・道路輪郭・中央線・横断歩道</strong>を描画します。建物では線画の窓枠、大きな建物の窓・入口・階層線、OSMのbuilding:part・屋根情報を反映します。<strong>窓位置・道路細部・横断歩道の一部は推定</strong>です。現地の実測3Dモデルではありません。</div>
+    <div class="note">v0.8.1：建物ごとの高さ・階数を入力、保存し、3D形状とFPS衝突判定へ反映。v0.8.0：建物をクリックしてOSMの名称・属性を表示。建物ごとの表示名と正面・側面・背面写真をIndexedDBへ保存（未対応ブラウザでは一時保存）。写真からの3D生成は次段階。v0.7.5：木にプレイヤー・敵ドローン・敵弾の衝突判定を追加。敵弾が木に当たると木と弾が両方消え、ゲーム再開時と地図に戻る際に植栽を復元します。v0.7.4：元のINKBOUNDに合わせてノート紙カード全体を傾斜、FPS画面の左下にOSM連動ミニマップ、WAVE/SCORE下に操作説明を移動。v0.7.3：INKBOUNDの傾斜ロゴとGitHub Pagesだけで利用できる短縮URL（#g=）を追加。短縮URLには座標・範囲・ゲーム指定を保存し、地名は表示用に逆引きします。v0.7.2：検索した地名を地図取得中・ゲーム開始画面・HUDに反映し、FPS共有URLでも場所を復元。v0.7.1：ドローンの建物壁への衝突判定と迂回・上昇回避、直接FPSを開始する共有URLに対応。v0.7.0：INKBOUND FPS戦闘モードを追加（WASD、射撃、ジャンプ、ダッシュ、グラップリング、ドローンWave制、建物の壁・屋上衝突）。地図表示と切替可能。ゲーム操作はPCブラウザ推奨。v0.6.0までの改善：地上の線路と建物の重なりを判定し、線路部分の建物をくり抜きます。駅舎・上屋は高架状の構造として補完する場合があります。<strong>駅の内部構造・高さは実測ではありません。</strong> 窓台・集合住宅ベランダの立体表現を追加。OSMの単木・並木を取り込み、周辺の公園・歩道沿いの街路樹を推定補完。表示／密度切替と出典数の表示、樹木のインスタンス化で描画負荷を軽減。地図の左右反転を修正。真上表示は北が上・東が右です。道路の見え方を改善し、<strong>車道・歩道・道路輪郭・中央線・横断歩道</strong>を描画します。建物では線画の窓枠、大きな建物の窓・入口・階層線、OSMのbuilding:part・屋根情報を反映します。<strong>窓位置・道路細部・横断歩道の一部は推定</strong>です。現地の実測3Dモデルではありません。</div>
     <div class="footer">地図データ © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a> (ODbL)<br>3Dエンジン: three.js (MIT)／建物・道路: Overpass API<br>地名検索: Nominatim（公開APIの利用制限に従います）<br>単一HTML。初回の3Dライブラリ取得と地図データ取得にはインターネット接続が必要です。公開APIは混雑・通信制限で失敗する場合があります。</div>
   </aside>
 </div>
@@ -223,6 +240,8 @@ const vegetationStats={mapped:0,treeRows:0,estimated:0};
 let timer=0;
 let cityRoot = new THREE.Group(); cityRoot.name='OSM Yamagata City';
 const buildingInfoById=new Map();
+// Local geometry edits override OSM tags only in the generated model, never in the source data.
+const buildingDimensionOverrides=new Map(),localDimensionsFallback=new Map();
 let chosenBuildingId=null, chosenBuildingEpoch=0, photoSlotToUpload='front';
 const selectedEdgeGroup=new THREE.Group();selectedEdgeGroup.name='Scout selection highlight (not in GLB)';
 const photoObjectUrls=[];
@@ -339,7 +358,7 @@ function randomColor(tags,id){let s=0;for(const c of String(id))s=(s*31+c.charCo
 // 高さがタグに存在するかを表示で区別する。形状不足時の推定は現実の高さを保証しない。
 function meters(v){if(v===null||v===undefined||v==='')return null;const n=parseFloat(String(v).replace(',','.'));return Number.isFinite(n)?n:null;}
 function buildingHeight(tags,id){
- const height=meters(tags.height);if(height!==null&&height>2&&height<600)return height;
+ const height=meters(tags.height);if(height!==null&&height>2&&height<=600)return height;
  const levels=meters(tags['building:levels']);if(levels!==null&&levels>0&&levels<150)return levels*3.15+.5;
  if(['garage','garages','shed','hut','roof'].includes(tags.building))return 3.2;
  // 大規模施設を無条件で低層にしないが、未入力の高さはあくまで概算。
@@ -647,8 +666,16 @@ function railDistance(x,z){
  for(const c of railCorridors)if(x>=c.bbox.minX&&x<=c.bbox.maxX&&z>=c.bbox.minY&&z<=c.bbox.maxY&&pointInPolygon([x,z],c.poly))return true;
  return false;
 }
+function effectiveBuildingTags(el){
+ const edit=buildingDimensionOverrides.get(buildingKey(el.id));
+ if(!edit)return el.tags||{};
+ const tags={...(el.tags||{})};
+ if(Number.isFinite(edit.height)&&edit.height>=2.1&&edit.height<=600)tags.height=String(edit.height);
+ if(Number.isInteger(edit.levels)&&edit.levels>=1&&edit.levels<=149)tags['building:levels']=String(edit.levels);
+ return tags;
+}
 function mkBuilding(el){
- const tags=el.tags||{},pts=osmPoints(el);
+ const tags=effectiveBuildingTags(el),pts=osmPoints(el);
  if(pts.length<3)return false;
  const area=Math.abs(polygonArea(pts));if(area<4||area>130000)return false;
  const h=buildingHeight(tags,el.id);
@@ -1074,7 +1101,7 @@ function syncPlaceLabels(){
  $('fpsPlaceTitle').textContent=name;
  $('fpsHudPlace').textContent=`INKBOUND / ${name}`;
  $('fpsIntro').textContent=`${name}の街を戦場に、追跡ドローンと戦おう。木は敵弾を防ぎ、弾が当たると木も弾も消えます。建物の高さ・屋上にはOSM情報に基づく推定を含みます。`;
- document.title=`${game.active?'INKBOUND':'街並みスケッチ 3D v0.8.0'} | ${name}`;
+ document.title=`${game.active?'INKBOUND':'街並みスケッチ 3D v0.8.1'} | ${name}`;
 }
 function updatePlaceUI(){
  $('lat').value=state.lat;$('lon').value=state.lon;$('radius').value=state.radius;
@@ -1170,6 +1197,8 @@ async function loadCity(explicitPlaceName){
   if(id!==activeLoad)return;
   if(elements.length===0)throw new Error('この範囲には地図データがありません');
   if(fromCache)$('networkInfo').textContent=`キャッシュから読み込み：${elements.length.toLocaleString()}件`;
+  await preloadBuildingDimensions(elements);
+  if(id!==activeLoad)return;
   buildWorld(elements);setStatus('読み込み完了');toast('街並みの3D生成が完了しました');
   if(wantsGameMode()&&!game.active)gameEnter();
  } catch(e){if(id!==activeLoad)return;setStatus('取得エラー');toast('読み込みに失敗しました。詳しい内容は「取得先」の下に表示しています。',8500);$('networkInfo').textContent='エラー：'+e.message+'。接続先を変更するか、範囲を180mにして再試行してください。';console.error(e);
@@ -1203,25 +1232,48 @@ function setLens(mm){camera.fov=THREE.MathUtils.radToDeg(2*Math.atan(36/(2*Numbe
 const buildingPickerRay=new THREE.Raycaster();
 const BUILDING_SIDES=[['front','正面'],['side','側面'],['back','背面']];
 function buildingKey(id){return 'way:'+String(id)}
+function buildingFallbackStore(store){return store==='names'?localNameFallback:store==='photos'?localPhotoFallback:localDimensionsFallback}
+function validSavedDimensions(v){
+ if(!v||typeof v!=='object')return null;
+ const height=v.height==null?null:Number(v.height),levels=v.levels==null?null:Number(v.levels);
+ const h=height!==null&&Number.isFinite(height)&&height>=2.1&&height<=600?height:null;
+ const l=levels!==null&&Number.isInteger(levels)&&levels>=1&&levels<=149?levels:null;
+ return h===null&&l===null?null:{height:h,levels:l};
+}
+async function preloadBuildingDimensions(elements){
+ const keys=new Set(elements.filter(e=>e.type==='way'&&(e.tags?.building||e.tags?.['building:part'])).map(e=>buildingKey(e.id)));
+ const db=await openBuildingDB();const loaded=new Map();
+ if(db){
+  await new Promise(resolve=>{
+   try{const tx=db.transaction('dimensions','readonly'),req=tx.objectStore('dimensions').openCursor();
+    req.onsuccess=()=>{const cursor=req.result;if(!cursor)return;
+     if(keys.has(String(cursor.key))){const v=validSavedDimensions(cursor.value);if(v)loaded.set(String(cursor.key),v)}cursor.continue()};
+    tx.oncomplete=resolve;tx.onerror=resolve;tx.onabort=resolve;
+   }catch{resolve()}
+  });
+ }else for(const [key,value] of localDimensionsFallback){if(keys.has(key)){const v=validSavedDimensions(value);if(v)loaded.set(key,v)}}
+ buildingDimensionOverrides.clear();for(const [key,val] of loaded)buildingDimensionOverrides.set(key,val);
+}
 function openBuildingDB(){
  if(inspectorDBPromise)return inspectorDBPromise;
  inspectorDBPromise=new Promise(resolve=>{
   if(!('indexedDB' in window)){resolve(null);return}
-  let req;try{req=indexedDB.open('cityscout-building-photos',1)}catch{resolve(null);return}
-  req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains('names'))db.createObjectStore('names');if(!db.objectStoreNames.contains('photos'))db.createObjectStore('photos')};
+  // Version 2 adds editable geometry without affecting existing photos or building names.
+  let req;try{req=indexedDB.open('cityscout-building-photos',2)}catch{resolve(null);return}
+  req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains('names'))db.createObjectStore('names');if(!db.objectStoreNames.contains('photos'))db.createObjectStore('photos');if(!db.objectStoreNames.contains('dimensions'))db.createObjectStore('dimensions')};
   req.onsuccess=()=>resolve(req.result);req.onerror=()=>resolve(null);req.onblocked=()=>resolve(null);
  });return inspectorDBPromise;
 }
 async function buildingStorageGet(store,key){
- const db=await openBuildingDB();if(!db)return (store==='names'?localNameFallback:localPhotoFallback).get(key)||null;
+ const db=await openBuildingDB();if(!db)return buildingFallbackStore(store).get(key)??null;
  return await new Promise(resolve=>{try{const req=db.transaction(store,'readonly').objectStore(store).get(key);req.onsuccess=()=>resolve(req.result??null);req.onerror=()=>resolve(null)}catch{resolve(null)}});
 }
 async function buildingStorageSet(store,key,value){
- const db=await openBuildingDB();if(!db){(store==='names'?localNameFallback:localPhotoFallback).set(key,value);return false}
+ const db=await openBuildingDB();if(!db){buildingFallbackStore(store).set(key,value);return false}
  return await new Promise(resolve=>{try{const req=db.transaction(store,'readwrite').objectStore(store).put(value,key);req.onsuccess=()=>resolve(true);req.onerror=()=>resolve(false)}catch{resolve(false)}});
 }
 async function buildingStorageDelete(store,key){
- const db=await openBuildingDB();if(!db){(store==='names'?localNameFallback:localPhotoFallback).delete(key);return false}
+ const db=await openBuildingDB();if(!db){buildingFallbackStore(store).delete(key);return false}
  return await new Promise(resolve=>{try{const req=db.transaction(store,'readwrite').objectStore(store).delete(key);req.onsuccess=()=>resolve(true);req.onerror=()=>resolve(false)}catch{resolve(false)}});
 }
 function releasePhotoUrls(){while(photoObjectUrls.length)URL.revokeObjectURL(photoObjectUrls.pop())}
@@ -1263,20 +1315,42 @@ async function renderBuildingPhotos(id,epoch){
   grid.append(card);
  }
 }
-async function selectBuilding(id,clientX,clientY){
+function refreshBuildingDimensionUI(id){
+ const info=buildingInfoById.get(String(id));if(!info)return;
+ const raw=info.tags||{},saved=buildingDimensionOverrides.get(buildingKey(id));
+ const currentHeight=saved?.height??meters(raw.height);
+ const currentLevels=saved?.levels??meters(raw['building:levels']);
+ $('buildingHeightInput').value=currentHeight===null?'':String(currentHeight);
+ $('buildingLevelsInput').value=currentLevels===null?'':String(currentLevels);
+ const effective=effectiveBuildingTags({id,tags:raw});
+ const estimated=buildingHeight(effective,id);
+ const metrics=[`OSM way ${id}`,`建物タイプ: ${raw.building||raw['building:part']||'未登録'}`,`高さ: ${currentHeight!==null?currentHeight+'m'+(saved?.height!=null?'（編集値）':'（OSM）'):estimated.toFixed(1)+'m（推定）'}`,`階数: ${currentLevels!==null?currentLevels+(saved?.levels!=null?'（編集値）':'（OSM）'):'未登録'}`,`住所: ${buildingAddress(raw)}`];
+ $('selectedBuildingInfo').textContent=metrics.join(' ／ ');
+ $('buildingDimensionSource').textContent=`OSM 高さ：${meters(raw.height)??'未登録'}${meters(raw.height)!==null?'m':''} ／ OSM 階数：${raw['building:levels']||'未登録'}。空欄はOSMの値を利用し、未登録なら高さを推定します。`;
+ $('buildingDimensionStatus').textContent=saved?'編集した値を3Dモデルに反映しています。元の値に戻すこともできます。':'OSMの値を表示中です。編集して保存すると建物の高さと窓配置が更新されます。';
+}
+async function rebuildAfterDimensionsEdit(id,epoch,summary){
+ if(chosenBuildingId!==id||chosenBuildingEpoch!==epoch||!state.data)return;
+ setStatus('建物を再生成中');
+ buildWorld(state.data,true);
+ setStatus('読み込み完了');
+ // buildWorld clears the previous highlight, so select the regenerated building again.
+ await selectBuilding(id,$('viewer').getBoundingClientRect().left+90,$('viewer').getBoundingClientRect().top+90,false);
+ if(chosenBuildingId===id){$('buildingDimensionStatus').textContent=summary;toast(summary)}
+}
+async function selectBuilding(id,clientX,clientY,scrollToInspector=true){
  const info=buildingInfoById.get(String(id));if(!info){toast('この建物のOSM属性が見つかりません');return}
  chosenBuildingId=String(id);const epoch=++chosenBuildingEpoch;const tags=info.tags;
  markBuildingSelection(id);
  $('buildingEmpty').hidden=true;$('buildingDetails').hidden=false;
  $('selectedBuildingName').textContent=selectedBuildingName(info);
- const metrics=[`OSM way ${id}`,`建物タイプ: ${tags.building||tags['building:part']||'未登録'}`,`高さ: ${tags.height?tags.height+'m': '未登録'}`,`階数: ${tags['building:levels']||'未登録'}`,`住所: ${buildingAddress(tags)}`];
- $('selectedBuildingInfo').textContent=metrics.join(' ／ ');
+ refreshBuildingDimensionUI(id);
  $('selectedBuildingOsm').href='https://www.openstreetmap.org/way/'+encodeURIComponent(id);
  $('buildingAlias').value='';setBuildingSaveStatus('写真はブラウザ内に保存します。自動3D生成は次の段階です。');
  // A small label near the clicked building provides immediate feedback, even with a scrolled sidebar.
  const rect=$('viewer').getBoundingClientRect(),tip=$('buildingPickTip');
  tip.textContent=selectedBuildingName(info);tip.style.left=Math.max(0,Math.min(clientX-rect.left,rect.width-215))+'px';tip.style.top=Math.max(40,Math.min(clientY-rect.top,rect.height-20))+'px';tip.style.display='block';
- $('buildingInspector').scrollIntoView({behavior:'smooth',block:'nearest'});
+ if(scrollToInspector)$('buildingInspector').scrollIntoView({behavior:'smooth',block:'nearest'});
  const alias=await buildingStorageGet('names',buildingKey(id));
  if(chosenBuildingEpoch!==epoch)return;
  $('buildingAlias').value=alias||'';$('selectedBuildingName').textContent=selectedBuildingName(info,alias);
@@ -1316,6 +1390,30 @@ $('saveBuildingAlias').addEventListener('click',async()=>{
  const info=buildingInfoById.get(id);$('selectedBuildingName').textContent=selectedBuildingName(info,alias);
  $('buildingPickTip').textContent=selectedBuildingName(info,alias);
  setBuildingSaveStatus(ok?'表示名を保存しました（このブラウザのみ）':'表示名を一時保存しました。永続保存が利用できない可能性があります。');
+});
+$('saveBuildingDimensions').addEventListener('click',async()=>{
+ if(!chosenBuildingId||game.active||!state.data)return;
+ const id=chosenBuildingId,epoch=chosenBuildingEpoch,rawH=$('buildingHeightInput').value.trim(),rawL=$('buildingLevelsInput').value.trim();
+ const height=rawH===''?null:Number(rawH),levels=rawL===''?null:Number(rawL);
+ if(height!==null&&(!Number.isFinite(height)||height<2.1||height>600)){$('buildingDimensionStatus').textContent='高さは2.1〜600mの数値で入力してください。';return}
+ if(levels!==null&&(!Number.isInteger(levels)||levels<1||levels>149)){$('buildingDimensionStatus').textContent='階数は1〜149の整数で入力してください。';return}
+ const raw=buildingInfoById.get(id)?.tags||{},base=Math.max(0,Math.min(120,meters(raw.min_height)??(meters(raw['building:min_level'])||0)*3.15));
+ if(height!==null&&height<=base+.3){$('buildingDimensionStatus').textContent=`高さは建物の基準高さ ${base.toFixed(1)}m より大きくしてください。`;return}
+ const value={height,levels,updated:Date.now()},key=buildingKey(id);
+ // Blank fields mean use the original OSM tags; no empty override is stored.
+ const keep=height!==null||levels!==null;
+ const ok=keep?await buildingStorageSet('dimensions',key,value):await buildingStorageDelete('dimensions',key);
+ if(chosenBuildingId!==id||chosenBuildingEpoch!==epoch)return;
+ if(keep)buildingDimensionOverrides.set(key,value);else buildingDimensionOverrides.delete(key);
+ await rebuildAfterDimensionsEdit(id,epoch,ok?'高さ・階数の変更を保存し、3DとFPS判定に反映しました。':'高さ・階数を一時反映しました。永続保存できない可能性があります。');
+});
+$('resetBuildingDimensions').addEventListener('click',async()=>{
+ if(!chosenBuildingId||game.active||!state.data)return;
+ const id=chosenBuildingId,epoch=chosenBuildingEpoch,key=buildingKey(id);
+ const ok=await buildingStorageDelete('dimensions',key);
+ if(chosenBuildingId!==id||chosenBuildingEpoch!==epoch)return;
+ buildingDimensionOverrides.delete(key);
+ await rebuildAfterDimensionsEdit(id,epoch,ok?'高さ・階数を元のOSM値に戻しました。':'OSMの値に一時的に戻しました。永続保存できない可能性があります。');
 });
 $('buildingPhotoGrid').addEventListener('click',async e=>{
  const pick=e.target.closest('[data-pick-photo]');
