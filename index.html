@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#101927">
-  <title>街並みスケッチ 3D v0.8.2 | 山形駅西口</title>
+  <title>街並みスケッチ 3D v0.9.0 | 山形駅西口</title>
   <meta name="description" content="OpenStreetMapの建物・道路をブラウザで3D化。山形駅西口から街並みの線画、マンガ調の背景画像やGLBを作成できます。">
   <style>
     :root { color-scheme: dark; --bg:#0b111b; --panel:#111c2b; --panel2:#182638; --line:#2b3c51; --text:#edf3fc; --muted:#9bacbf; --accent:#71e0bc; --cyan:#82c9f7; --orange:#ffc875; }
@@ -78,6 +78,12 @@
     .building-photo .empty-photo{display:grid;place-items:center;font-size:21px;color:#82a5bb}
     .building-photo button{margin-top:5px;width:100%;font-size:10px!important;padding:5px 2px!important}
     .building-photo .photo-delete{border-color:#624f58;color:#ffcbcf;background:#34212c}
+    .photo-model-panel{margin:12px 0;padding:11px;border:1px solid #42677b;border-radius:10px;background:#0c2430}
+    .photo-model-panel strong{color:#d6fff4;font-size:12px}
+    .photo-model-panel button{margin-top:8px}
+    .photo-model-panel .form-row{flex-wrap:wrap}
+    .photo-model-panel .form-row button{flex:1}
+    #photoRoofPreview{display:none;width:100%;height:83px;border:1px solid #577081;border-radius:5px;background:#faf7ec;margin-top:7px}
     #buildingPickTip{position:absolute;display:none;pointer-events:none;z-index:2;max-width:min(230px,65vw);border-radius:7px;background:#10392fed;border:1px solid #69d9b7;color:#e7fff6;padding:6px 9px;font-size:12px;box-shadow:0 4px 16px #0008;transform:translate(10px,-18px)}
     .app.fps #buildingPickTip{display:none!important}
     /* INKBOUND FPS mode: the editor remains intact outside this mode. */
@@ -134,7 +140,7 @@
 <div class="app">
   <header>
     <div class="logo">▥</div>
-    <div class="brand"><strong>街並みスケッチ 3D <small style="color:var(--accent);font-size:10px">v0.8.2</small></strong><span>OSM CITY SCOUT · 地図から街とゲームを生成</span></div>
+    <div class="brand"><strong>街並みスケッチ 3D <small style="color:var(--accent);font-size:10px">v0.9.0</small></strong><span>OSM CITY SCOUT · 地図から街とゲームを生成</span></div>
     <div class="header-tools"><span class="pill" id="loadstate">地図データを準備中</span><button class="primary small" id="gameBtn" disabled>▶ INKBOUND FPS</button><button class="small" id="resetPlace">↺ 西口に戻す</button></div>
   </header>
   <main class="viewer" id="viewer">
@@ -196,8 +202,15 @@
         <div class="building-photo-grid" id="buildingPhotoGrid" aria-label="建物写真"></div>
         <input id="buildingPhotoInput" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,image/*" hidden>
         <p id="buildingSaveStatus" class="help" aria-live="polite">正面・側面・背面の写真を1枚ずつ登録できます。</p>
+        <div class="photo-model-panel">
+          <strong>写真から建物の外形を生成（試作）</strong>
+          <p class="help">登録した正面写真を解析し、空との境界から屋上の輪郭を推定して立体化します。地面の輪郭・奥行きはOSMで補完します。空が写っていない写真は検出できない場合があります。</p>
+          <canvas id="photoRoofPreview" width="320" height="83" aria-label="写真から検出した屋上輪郭"></canvas>
+          <div class="form-row"><button class="primary" id="generatePhotoShape">写真から3D外形を生成</button><button id="resetPhotoShape">写真由来の外形を解除</button></div>
+          <p class="help" id="photoShapeStatus" role="status" aria-live="polite">正面写真を登録すると利用できます。</p>
+        </div>
         <button id="closeBuilding" class="small" style="margin-top:8px">選択を解除</button>
-        <p class="help">写真・表示名・高さ・階数の編集値はこのブラウザ内だけに保存されます。写真からの自動3D生成は次の開発段階です。OSMの元データは変更しません。</p>
+        <p class="help">写真・表示名・高さ・階数の編集値はこのブラウザ内だけに保存されます。写真から屋上の輪郭を推定して立体化できます。1枚の写真から見えない側面や屋根は再現できません。OSMの元データは変更しません。</p>
       </div>
     </section>
     <section>
@@ -223,7 +236,7 @@
       <div class="chips" style="margin-top:8px"><button id="copyLink">🔗 短縮URLをコピー</button><button id="copyGameLink">🎮 FPS短縮URL</button><button id="openOsm">↗ OSMで見る</button></div>
       <p class="help">PNGは現在の画面の解像度で保存します。GLBは街並みの3D形状を出力し、BlenderやUnityで利用できます。</p>
     </section>
-    <div class="note">v0.8.2：敵弾がどこにも当たらない場合にnull参照でゲームが停止する不具合を修正。v0.8.1：建物ごとの高さ・階数を入力、保存し、3D形状とFPS衝突判定へ反映。v0.8.0：建物をクリックしてOSMの名称・属性を表示。建物ごとの表示名と正面・側面・背面写真をIndexedDBへ保存（未対応ブラウザでは一時保存）。写真からの3D生成は次段階。v0.7.5：木にプレイヤー・敵ドローン・敵弾の衝突判定を追加。敵弾が木に当たると木と弾が両方消え、ゲーム再開時と地図に戻る際に植栽を復元します。v0.7.4：元のINKBOUNDに合わせてノート紙カード全体を傾斜、FPS画面の左下にOSM連動ミニマップ、WAVE/SCORE下に操作説明を移動。v0.7.3：INKBOUNDの傾斜ロゴとGitHub Pagesだけで利用できる短縮URL（#g=）を追加。短縮URLには座標・範囲・ゲーム指定を保存し、地名は表示用に逆引きします。v0.7.2：検索した地名を地図取得中・ゲーム開始画面・HUDに反映し、FPS共有URLでも場所を復元。v0.7.1：ドローンの建物壁への衝突判定と迂回・上昇回避、直接FPSを開始する共有URLに対応。v0.7.0：INKBOUND FPS戦闘モードを追加（WASD、射撃、ジャンプ、ダッシュ、グラップリング、ドローンWave制、建物の壁・屋上衝突）。地図表示と切替可能。ゲーム操作はPCブラウザ推奨。v0.6.0までの改善：地上の線路と建物の重なりを判定し、線路部分の建物をくり抜きます。駅舎・上屋は高架状の構造として補完する場合があります。<strong>駅の内部構造・高さは実測ではありません。</strong> 窓台・集合住宅ベランダの立体表現を追加。OSMの単木・並木を取り込み、周辺の公園・歩道沿いの街路樹を推定補完。表示／密度切替と出典数の表示、樹木のインスタンス化で描画負荷を軽減。地図の左右反転を修正。真上表示は北が上・東が右です。道路の見え方を改善し、<strong>車道・歩道・道路輪郭・中央線・横断歩道</strong>を描画します。建物では線画の窓枠、大きな建物の窓・入口・階層線、OSMのbuilding:part・屋根情報を反映します。<strong>窓位置・道路細部・横断歩道の一部は推定</strong>です。現地の実測3Dモデルではありません。</div>
+    <div class="note">v0.9.0：敵弾がどこにも当たらない場合にnull参照でゲームが停止する不具合を修正。v0.8.1：建物ごとの高さ・階数を入力、保存し、3D形状とFPS衝突判定へ反映。v0.8.0：建物をクリックしてOSMの名称・属性を表示。建物ごとの表示名と正面・側面・背面写真をIndexedDBへ保存（未対応ブラウザでは一時保存）。写真の空と建物の境界から屋上の外形を自動生成する試作を追加。v0.7.5：木にプレイヤー・敵ドローン・敵弾の衝突判定を追加。敵弾が木に当たると木と弾が両方消え、ゲーム再開時と地図に戻る際に植栽を復元します。v0.7.4：元のINKBOUNDに合わせてノート紙カード全体を傾斜、FPS画面の左下にOSM連動ミニマップ、WAVE/SCORE下に操作説明を移動。v0.7.3：INKBOUNDの傾斜ロゴとGitHub Pagesだけで利用できる短縮URL（#g=）を追加。短縮URLには座標・範囲・ゲーム指定を保存し、地名は表示用に逆引きします。v0.7.2：検索した地名を地図取得中・ゲーム開始画面・HUDに反映し、FPS共有URLでも場所を復元。v0.7.1：ドローンの建物壁への衝突判定と迂回・上昇回避、直接FPSを開始する共有URLに対応。v0.7.0：INKBOUND FPS戦闘モードを追加（WASD、射撃、ジャンプ、ダッシュ、グラップリング、ドローンWave制、建物の壁・屋上衝突）。地図表示と切替可能。ゲーム操作はPCブラウザ推奨。v0.6.0までの改善：地上の線路と建物の重なりを判定し、線路部分の建物をくり抜きます。駅舎・上屋は高架状の構造として補完する場合があります。<strong>駅の内部構造・高さは実測ではありません。</strong> 窓台・集合住宅ベランダの立体表現を追加。OSMの単木・並木を取り込み、周辺の公園・歩道沿いの街路樹を推定補完。表示／密度切替と出典数の表示、樹木のインスタンス化で描画負荷を軽減。地図の左右反転を修正。真上表示は北が上・東が右です。道路の見え方を改善し、<strong>車道・歩道・道路輪郭・中央線・横断歩道</strong>を描画します。建物では線画の窓枠、大きな建物の窓・入口・階層線、OSMのbuilding:part・屋根情報を反映します。<strong>窓位置・道路細部・横断歩道の一部は推定</strong>です。現地の実測3Dモデルではありません。</div>
     <div class="footer">地図データ © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a> (ODbL)<br>3Dエンジン: three.js (MIT)／建物・道路: Overpass API<br>地名検索: Nominatim（公開APIの利用制限に従います）<br>単一HTML。初回の3Dライブラリ取得と地図データ取得にはインターネット接続が必要です。公開APIは混雑・通信制限で失敗する場合があります。</div>
   </aside>
 </div>
@@ -242,6 +255,7 @@ let cityRoot = new THREE.Group(); cityRoot.name='OSM Yamagata City';
 const buildingInfoById=new Map();
 // Local geometry edits override OSM tags only in the generated model, never in the source data.
 const buildingDimensionOverrides=new Map(),localDimensionsFallback=new Map();
+const photoGeometryOverrides=new Map(),localGeometryFallback=new Map();
 let chosenBuildingId=null, chosenBuildingEpoch=0, photoSlotToUpload='front';
 const selectedEdgeGroup=new THREE.Group();selectedEdgeGroup.name='Scout selection highlight (not in GLB)';
 const photoObjectUrls=[];
@@ -674,6 +688,46 @@ function effectiveBuildingTags(el){
  if(Number.isInteger(edit.levels)&&edit.levels>=1&&edit.levels<=149)tags['building:levels']=String(edit.levels);
  return tags;
 }
+// A photo-derived roof silhouette extruded in 3D. The image controls the elevation outline;
+// OSM supplies placement, azimuth and an estimated depth. Not a full photogrammetric reconstruction.
+function makePhotoBuilding(pts,base,height,tags,id,model){
+ if(pts.length<3||height-base<3.5)return false;
+ let side=0,longest=0;
+ for(let i=0;i<pts.length;i++){
+  const a=pts[i],b=pts[(i+1)%pts.length],distance=Math.hypot(b[0]-a[0],b[1]-a[1]);
+  if(distance>longest){side=i;longest=distance}
+ }
+ if(longest<3)return false;
+ const A=pts[side],B=pts[(side+1)%pts.length],ux=(B[0]-A[0])/longest,uz=(B[1]-A[1])/longest;
+ const sign=polygonArea(pts)>0?1:-1,inx=-uz*sign,inz=ux*sign;
+ const depth=Math.max(2,Math.min(120,Math.max(...pts.map(p=>(p[0]-A[0])*inx+(p[1]-A[1])*inz))));
+ if(!Number.isFinite(depth)||depth<2)return false;
+ const C=[B[0]+inx*depth,B[1]+inz*depth],D=[A[0]+inx*depth,A[1]+inz*depth];
+ const footprint=[A,B,C,D];
+ // Do not reintroduce geometry on top of tracks repaired by the existing rail logic.
+ if($('avoidRailCollision').checked&&railFootprint(footprint))return false;
+ const baseH=height-base,roofBand=Math.min(6,Math.max(.55,baseH*.19));
+ const shape=new THREE.Shape();shape.moveTo(0,0);shape.lineTo(longest,0);
+ const levels=model.profile.map(v=>baseH-roofBand*(1-v));
+ for(let i=levels.length-1;i>=0;i--)shape.lineTo(longest*i/(levels.length-1),levels[i]);
+ shape.closePath();
+ const geo=new THREE.ExtrudeGeometry(shape,{depth,bevelEnabled:false,steps:1,curveSegments:1});
+ const axisX=new THREE.Vector3(ux,0,uz),axisY=new THREE.Vector3(0,1,0),axisZ=new THREE.Vector3(inx,0,inz);
+ const matrix=new THREE.Matrix4().makeBasis(axisX,axisY,axisZ);matrix.setPosition(A[0],base,A[1]);geo.applyMatrix4(matrix);
+ const mat=colorMat(model.color,{side:THREE.DoubleSide}),mesh=new THREE.Mesh(geo,mat);
+ mesh.userData.osmId=id;mesh.userData.originalColor=model.color;mesh.userData.photoDerived=true;registered(mesh,'building');
+ const outline=new THREE.LineSegments(new THREE.EdgesGeometry(geo,21),new THREE.LineBasicMaterial({color:0x1e242a}));registered(outline,'outline');
+ // Narrow collision slices follow the photo-derived skyline instead of using the old box height.
+ for(let i=0;i<levels.length-1;i++){
+  const f=i/(levels.length-1),g=(i+1)/(levels.length-1);
+  const P=[A[0]+ux*longest*f,A[1]+uz*longest*f],Q=[A[0]+ux*longest*g,A[1]+uz*longest*g];
+  const poly=[P,Q,[Q[0]+inx*depth,Q[1]+inz*depth],[P[0]+inx*depth,P[1]+inz*depth]];
+  gameColliders.push({pts:poly,base,top:base+Math.max(levels[i],levels[i+1]),bbox:bounds2(poly)});
+ }
+ // Procedural windows remain on four exterior walls until photo facade understanding is added.
+ addFacadeDetails(footprint,base,base+Math.min(...levels),0,tags,id);
+ return true;
+}
 function mkBuilding(el){
  const tags=effectiveBuildingTags(el),pts=osmPoints(el);
  if(pts.length<3)return false;
@@ -682,6 +736,13 @@ function mkBuilding(el){
  const minHeight=meters(tags.min_height);const minLevel=meters(tags['building:min_level']);
  const base=Math.max(0,Math.min(120,minHeight!==null?minHeight:(minLevel||0)*3.15));
  if(h<=base+.3)return false;
+ const photoModel=photoGeometryOverrides.get(buildingKey(el.id));
+ if(photoModel&&makePhotoBuilding(pts,base,h,tags,el.id,photoModel)){
+  detailStats.photoBuildings=(detailStats.photoBuildings||0)+1;
+  if(tags['building:part'])detailStats.parts++;
+  if(meters(tags.height)!==null||meters(tags['building:levels'])!==null)detailStats.taggedHeights++;
+  return true;
+ }
  const nearGround=base<5.2&&String(tags.tunnel||'')!=='yes'&&String(tags.bridge||'')!=='yes';
  const trackCut=nearGround?railFootprint(pts):null;
  if(trackCut){
@@ -938,7 +999,7 @@ function clearCity(){for(const key of Object.keys(pieces)){for(const obj of piec
  }pieces[key].length=0;}}
 function buildWorld(elements,preserveCamera=false){
  const savedPosition=camera.position.clone(),savedTarget=controls.target.clone();
- clearBuildingSelection();clearCity();buildingInfoById.clear();gameTrees.length=0;gameTreeGrid.clear();gameColliders.length=0;gameCollisionGrid.clear();newDetailBuffer();let buildings=0,roads=0,trees=0,railways=0;
+ clearBuildingSelection();clearCity();buildingInfoById.clear();gameTrees.length=0;gameTreeGrid.clear();gameColliders.length=0;gameCollisionGrid.clear();newDetailBuffer();detailStats.photoBuildings=0;let buildings=0,roads=0,trees=0,railways=0;
  const park=[],road=[],rail=[],building=[],parts=[],nodes=[],treeRows=[],plantingAreas=[];
  for(const el of elements){const t=el.tags||{};
   if(el.type==='node'&&t.natural==='tree')nodes.push(el);
@@ -987,7 +1048,7 @@ function buildWorld(elements,preserveCamera=false){
  $('featurecount').textContent=`建物 ${buildings} · 樹木 ${trees} · 窓 ${detailStats.windows.toLocaleString()} · 線路 ${railways}`;
  $('treeInfo').textContent=`OSMの単木 ${vegetationStats.mapped}本 ／ OSMの並木から生成 ${vegetationStats.treeRows}本 ／ 公園・歩道の推定 ${vegetationStats.estimated}本。推定は実測位置を保証しません。`;
  $('railInfo').textContent=$('avoidRailCollision').checked?`線路と重なった建物 ${railRepair.buildings}棟 ／ 地上の線路部分を除去 ${railRepair.cutouts}棟 ／ 駅舎の上部構造を推定 ${railRepair.stationBridges}棟 ／ 全体を省略 ${railRepair.skipped}棟。橋・トンネルの線路は除外。`: '重なり補正はオフです。OSMの建物が線路を塞ぐ場合があります。';
- $('buildingInfo').textContent=`生成した窓 ${detailStats.windows.toLocaleString()}個 ／ 入口 ${detailStats.doors} ／ OSMに高さ・階数情報あり ${detailStats.taggedHeights}/${buildings}棟 ／ 窓台 ${detailStats.sills} ／ ベランダ ${detailStats.balconies} ／ 建物部分 ${detailStats.parts}件 ／ 立体屋根 ${detailStats.roofs}件`;
+ $('buildingInfo').textContent=`写真からの立体外形 ${detailStats.photoBuildings||0}棟 ／ 生成した窓 ${detailStats.windows.toLocaleString()}個 ／ 入口 ${detailStats.doors} ／ OSMに高さ・階数情報あり ${detailStats.taggedHeights}/${buildings}棟 ／ 窓台 ${detailStats.sills} ／ ベランダ ${detailStats.balconies} ／ 建物部分 ${detailStats.parts}件 ／ 立体屋根 ${detailStats.roofs}件`;
  applyStyle();
  $('gameBtn').disabled=false;
  if(preserveCamera){camera.position.copy(savedPosition);controls.target.copy(savedTarget);controls.update()}
@@ -1101,7 +1162,7 @@ function syncPlaceLabels(){
  $('fpsPlaceTitle').textContent=name;
  $('fpsHudPlace').textContent=`INKBOUND / ${name}`;
  $('fpsIntro').textContent=`${name}の街を戦場に、追跡ドローンと戦おう。木は敵弾を防ぎ、弾が当たると木も弾も消えます。建物の高さ・屋上にはOSM情報に基づく推定を含みます。`;
- document.title=`${game.active?'INKBOUND':'街並みスケッチ 3D v0.8.2'} | ${name}`;
+ document.title=`${game.active?'INKBOUND':'街並みスケッチ 3D v0.9.0'} | ${name}`;
 }
 function updatePlaceUI(){
  $('lat').value=state.lat;$('lon').value=state.lon;$('radius').value=state.radius;
@@ -1199,6 +1260,8 @@ async function loadCity(explicitPlaceName){
   if(fromCache)$('networkInfo').textContent=`キャッシュから読み込み：${elements.length.toLocaleString()}件`;
   await preloadBuildingDimensions(elements);
   if(id!==activeLoad)return;
+  await preloadPhotoGeometry(elements);
+  if(id!==activeLoad)return;
   buildWorld(elements);setStatus('読み込み完了');toast('街並みの3D生成が完了しました');
   if(wantsGameMode()&&!game.active)gameEnter();
  } catch(e){if(id!==activeLoad)return;setStatus('取得エラー');toast('読み込みに失敗しました。詳しい内容は「取得先」の下に表示しています。',8500);$('networkInfo').textContent='エラー：'+e.message+'。接続先を変更するか、範囲を180mにして再試行してください。';console.error(e);
@@ -1232,7 +1295,7 @@ function setLens(mm){camera.fov=THREE.MathUtils.radToDeg(2*Math.atan(36/(2*Numbe
 const buildingPickerRay=new THREE.Raycaster();
 const BUILDING_SIDES=[['front','正面'],['side','側面'],['back','背面']];
 function buildingKey(id){return 'way:'+String(id)}
-function buildingFallbackStore(store){return store==='names'?localNameFallback:store==='photos'?localPhotoFallback:localDimensionsFallback}
+function buildingFallbackStore(store){return store==='names'?localNameFallback:store==='photos'?localPhotoFallback:store==='dimensions'?localDimensionsFallback:localGeometryFallback}
 function validSavedDimensions(v){
  if(!v||typeof v!=='object')return null;
  const height=v.height==null?null:Number(v.height),levels=v.levels==null?null:Number(v.levels);
@@ -1254,13 +1317,35 @@ async function preloadBuildingDimensions(elements){
  }else for(const [key,value] of localDimensionsFallback){if(keys.has(key)){const v=validSavedDimensions(value);if(v)loaded.set(key,v)}}
  buildingDimensionOverrides.clear();for(const [key,val] of loaded)buildingDimensionOverrides.set(key,val);
 }
+function validatePhotoGeometry(value){
+ if(!value||value.version!==1||!Array.isArray(value.profile)||value.profile.length<3||value.profile.length>40)return null;
+ const profile=value.profile.map(Number);
+ if(profile.some(x=>!Number.isFinite(x)||x<.55||x>1))return null;
+ const color=Number(value.color);
+ if(!Number.isInteger(color)||color<0||color>0xffffff)return null;
+ return {version:1,profile,color,confidence:Math.max(0,Math.min(1,Number(value.confidence)||0)),source:value.source==='side'?'side':'front',updated:Number(value.updated)||0};
+}
+async function preloadPhotoGeometry(elements){
+ const keys=new Set(elements.filter(e=>e.type==='way'&&(e.tags?.building||e.tags?.['building:part'])).map(e=>buildingKey(e.id)));
+ const db=await openBuildingDB(),found=new Map();
+ if(db){
+  await new Promise(resolve=>{
+   try{const tx=db.transaction('geometry','readonly'),req=tx.objectStore('geometry').openCursor();
+    req.onsuccess=()=>{const cur=req.result;if(!cur)return;
+     if(keys.has(String(cur.key))){const p=validatePhotoGeometry(cur.value);if(p)found.set(String(cur.key),p)}cur.continue()};
+    tx.oncomplete=resolve;tx.onerror=resolve;tx.onabort=resolve;
+   }catch{resolve()}
+  });
+ }else for(const [key,v] of localGeometryFallback){if(keys.has(key)){const p=validatePhotoGeometry(v);if(p)found.set(key,p)}}
+ photoGeometryOverrides.clear();for(const [k,v] of found)photoGeometryOverrides.set(k,v);
+}
 function openBuildingDB(){
  if(inspectorDBPromise)return inspectorDBPromise;
  inspectorDBPromise=new Promise(resolve=>{
   if(!('indexedDB' in window)){resolve(null);return}
-  // Version 2 adds editable geometry without affecting existing photos or building names.
-  let req;try{req=indexedDB.open('cityscout-building-photos',2)}catch{resolve(null);return}
-  req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains('names'))db.createObjectStore('names');if(!db.objectStoreNames.contains('photos'))db.createObjectStore('photos');if(!db.objectStoreNames.contains('dimensions'))db.createObjectStore('dimensions')};
+  // Version 3 adds photo-derived roof silhouettes; existing names, photos and dimensions stay intact.
+  let req;try{req=indexedDB.open('cityscout-building-photos',3)}catch{resolve(null);return}
+  req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains('names'))db.createObjectStore('names');if(!db.objectStoreNames.contains('photos'))db.createObjectStore('photos');if(!db.objectStoreNames.contains('dimensions'))db.createObjectStore('dimensions');if(!db.objectStoreNames.contains('geometry'))db.createObjectStore('geometry')};
   req.onsuccess=()=>resolve(req.result);req.onerror=()=>resolve(null);req.onblocked=()=>resolve(null);
  });return inspectorDBPromise;
 }
@@ -1346,7 +1431,8 @@ async function selectBuilding(id,clientX,clientY,scrollToInspector=true){
  $('selectedBuildingName').textContent=selectedBuildingName(info);
  refreshBuildingDimensionUI(id);
  $('selectedBuildingOsm').href='https://www.openstreetmap.org/way/'+encodeURIComponent(id);
- $('buildingAlias').value='';setBuildingSaveStatus('写真はブラウザ内に保存します。自動3D生成は次の段階です。');
+ $('buildingAlias').value='';setBuildingSaveStatus('写真はブラウザ内に保存します。屋上外形の生成は下のボタンから実行できます。');
+ refreshPhotoShapeUI(id,epoch);
  // A small label near the clicked building provides immediate feedback, even with a scrolled sidebar.
  const rect=$('viewer').getBoundingClientRect(),tip=$('buildingPickTip');
  tip.textContent=selectedBuildingName(info);tip.style.left=Math.max(0,Math.min(clientX-rect.left,rect.width-215))+'px';tip.style.top=Math.max(40,Math.min(clientY-rect.top,rect.height-20))+'px';tip.style.display='block';
@@ -1357,6 +1443,85 @@ async function selectBuilding(id,clientX,clientY,scrollToInspector=true){
  tip.textContent=selectedBuildingName(info,alias);
  await renderBuildingPhotos(String(id),epoch);
  const db=await openBuildingDB();if(chosenBuildingEpoch===epoch&&!db)setBuildingSaveStatus('この環境では永続保存を利用できないため、このページを開いている間だけ保持されます。');
+}
+// Analyze the sky/building boundary in a front-facing photograph. Refuse ambiguous images.
+function extractSkylineFromPixels(bytes,width,height){
+ const index=(x,y)=>4*(Math.max(0,Math.min(height-1,Math.round(y)))*width+Math.max(0,Math.min(width-1,Math.round(x))));
+ const at=(x,y)=>{const i=index(x,y);return [bytes[i],bytes[i+1],bytes[i+2]]};
+ const average=(x,y)=>{
+  let sum=[0,0,0],n=0;
+  for(let dx=-3;dx<=3;dx+=2)for(let dy=-3;dy<=3;dy+=2){const rgb=at(x+dx,y+dy);sum=sum.map((v,i)=>v+rgb[i]);n++}
+  return sum.map(v=>v/n);
+ };
+ const skyA=average(width*.06,height*.045),skyB=average(width*.94,height*.045);
+ const diff=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1],a[2]-b[2]);
+ if(diff(skyA,skyB)>68)throw new Error('空の色を確認できません。建物全体と空が写った写真を使ってください。');
+ const sky=skyA.map((v,i)=>(v+skyB[i])/2);
+ if((sky[0]+sky[1]+sky[2])/3<88)throw new Error('上部に明るい空が写る写真を登録してください。');
+ const skyLike=rgb=>diff(rgb,sky)<59;
+ let topSky=0;
+ for(let i=0;i<30;i++)if(skyLike(at(width*(.035+.93*i/29),height*.05)))topSky++;
+ if(topSky<19)throw new Error('建物と空の境界が不明瞭です。空が入る正面写真で試してください。');
+ const edge=[];
+ for(let x=Math.floor(width*.04);x<Math.floor(width*.96);x+=2){
+  let yStart=null,run=0;
+  for(let y=Math.floor(height*.07);y<Math.floor(height*.80);y+=2){
+   if(!skyLike(at(x,y))){run++;if(run>=3){yStart=y-4;break}}else run=0;
+  }
+  if(yStart!==null&&yStart>height*.09&&yStart<height*.77)edge.push([x,yStart]);
+ }
+ if(edge.length<width*.16)throw new Error('屋上の輪郭が十分に検出できませんでした。建物全体が写った写真を使ってください。');
+ // Use the widest contiguous skyline region: avoid unrelated houses at the edges.
+ const groups=[];let group=[];
+ for(const item of edge){if(group.length&&item[0]-group[group.length-1][0]>4){groups.push(group);group=[]}group.push(item)}
+ if(group.length)groups.push(group);
+ groups.sort((a,b)=>b.length-a.length);
+ const samples=groups[0];
+ if(samples.length<9||samples[samples.length-1][0]-samples[0][0]<width*.30)throw new Error('建物の横幅が足りません。建物全体が写る写真で試してください。');
+ const points=[],count=19;
+ for(let i=0;i<count;i++){
+  const x=samples[0][0]+(samples[samples.length-1][0]-samples[0][0])*i/(count-1);
+  const near=samples.filter(p=>Math.abs(p[0]-x)<=Math.max(6,width*.027)).map(p=>p[1]).sort((a,b)=>a-b);
+  points.push(near.length?near[Math.floor(near.length/2)]:samples.reduce((v,p)=>Math.abs(p[0]-x)<Math.abs(v[0]-x)?p:v)[1]);
+ }
+ // Smooth non-structural speckles without erasing larger roof shapes.
+ const smooth=points.map((_,i)=>{const v=points.slice(Math.max(0,i-1),Math.min(points.length,i+2)).sort((a,b)=>a-b);return v[Math.floor(v.length/2)]});
+ const highest=Math.min(...smooth),lowest=Math.max(...smooth),span=lowest-highest;
+ const profile=smooth.map(y=>span<height*.023?1:Math.max(.58,Math.min(1,1-(y-highest)/Math.max(span,1)*.38)));
+ // Sample the dominant non-sky wall color from the lower central region of the image.
+ let col=[0,0,0],cnt=0;
+ for(let y=Math.round(height*.55);y<height*.79;y+=7)for(let x=Math.round(width*.27);x<width*.73;x+=7){const pix=at(x,y);if(!skyLike(pix)){col=col.map((v,k)=>v+pix[k]);cnt++}}
+ const c=cnt>4?col.map(v=>Math.round(v/cnt)): [193,199,199];
+ const color=((c[0]<<16)|(c[1]<<8)|c[2])>>>0;
+ return {version:1,profile,color,confidence:Math.min(.97,.45+Math.min(.4,samples.length/(width*.5))*.5+topSky/150),source:'front',updated:Date.now()};
+}
+async function analyzePhotoShape(blob){
+ const obj=URL.createObjectURL(blob);
+ try{
+  const img=await new Promise((resolve,reject)=>{const i=new Image();i.onload=()=>resolve(i);i.onerror=()=>reject(new Error('写真を開けませんでした'));i.src=obj});
+  const can=document.createElement('canvas'),ratio=Math.min(1,320/img.naturalWidth,256/img.naturalHeight);
+  can.width=Math.max(32,Math.round(img.naturalWidth*ratio));can.height=Math.max(32,Math.round(img.naturalHeight*ratio));
+  const ctx=can.getContext('2d',{willReadFrequently:true});ctx.drawImage(img,0,0,can.width,can.height);
+  const rgba=ctx.getImageData(0,0,can.width,can.height);
+  return extractSkylineFromPixels(rgba.data,can.width,can.height);
+ }finally{URL.revokeObjectURL(obj)}
+}
+function showPhotoRoofPreview(model){
+ const preview=$('photoRoofPreview');preview.style.display=model?'block':'none';if(!model)return;
+ const x=preview.getContext('2d'),w=preview.width,h=preview.height;
+ x.clearRect(0,0,w,h);x.fillStyle='#dbeaf2';x.fillRect(0,0,w,h);
+ x.fillStyle='#aab8c0';x.strokeStyle='#1a4a80';x.lineWidth=2;x.beginPath();x.moveTo(0,h);
+ for(let i=0;i<model.profile.length;i++){
+  const y=(1-model.profile[i])*.62*h+.14*h;
+  x.lineTo(i*w/(model.profile.length-1),y);
+ }
+ x.lineTo(w,h);x.closePath();x.fill();x.stroke();
+}
+async function refreshPhotoShapeUI(id,epoch){
+ const existing=photoGeometryOverrides.get(buildingKey(id));
+ if(chosenBuildingId!==id||chosenBuildingEpoch!==epoch)return;
+ showPhotoRoofPreview(existing||null);
+ $('photoShapeStatus').textContent=existing?'写真由来の外形を3Dに反映中（輪郭は推定値です）。解除でOSMの形状に戻せます。':'正面写真を登録すると、屋上の外形を推定できます。';
 }
 async function fileToJpegBlob(file){
  if(!file.type.startsWith('image/'))throw new Error('画像ファイルを選んでください');
@@ -1415,6 +1580,30 @@ $('resetBuildingDimensions').addEventListener('click',async()=>{
  buildingDimensionOverrides.delete(key);
  await rebuildAfterDimensionsEdit(id,epoch,ok?'高さ・階数を元のOSM値に戻しました。':'OSMの値に一時的に戻しました。永続保存できない可能性があります。');
 });
+$('generatePhotoShape').addEventListener('click',async()=>{
+ if(!chosenBuildingId||!state.data||game.active)return;
+ const id=chosenBuildingId,epoch=chosenBuildingEpoch,status=$('photoShapeStatus'),button=$('generatePhotoShape');
+ status.textContent='写真から建物の屋上輪郭を解析しています…';button.disabled=true;
+ try{
+  const key=buildingKey(id),entry=await buildingStorageGet('photos',key+'|front');
+  if(!entry?.blob)throw new Error('先に「正面」の写真を登録してください。');
+  const model=await analyzePhotoShape(entry.blob);
+  if(chosenBuildingId!==id||chosenBuildingEpoch!==epoch)return;
+  const ok=await buildingStorageSet('geometry',key,model);
+  if(chosenBuildingId!==id||chosenBuildingEpoch!==epoch)return;
+  photoGeometryOverrides.set(key,model);
+  await rebuildAfterDimensionsEdit(id,epoch,ok?'写真から屋上輪郭を生成し、3DとFPS判定に反映しました。':'写真から外形を一時生成しました。永続保存は利用できない可能性があります。');
+ }catch(err){if(chosenBuildingId===id&&chosenBuildingEpoch===epoch)status.textContent='自動生成できませんでした：'+err.message}
+ finally{button.disabled=false}
+});
+$('resetPhotoShape').addEventListener('click',async()=>{
+ if(!chosenBuildingId||!state.data||game.active)return;
+ const id=chosenBuildingId,epoch=chosenBuildingEpoch,key=buildingKey(id);
+ const ok=await buildingStorageDelete('geometry',key);
+ if(chosenBuildingId!==id||chosenBuildingEpoch!==epoch)return;
+ photoGeometryOverrides.delete(key);
+ await rebuildAfterDimensionsEdit(id,epoch,ok?'写真由来の外形を解除し、OSMの建物に戻しました。':'写真外形を一時解除しました。');
+});
 $('buildingPhotoGrid').addEventListener('click',async e=>{
  const pick=e.target.closest('[data-pick-photo]');
  if(pick){photoSlotToUpload=pick.dataset.pickPhoto;$('buildingPhotoInput').value='';$('buildingPhotoInput').click();return}
@@ -1423,7 +1612,10 @@ $('buildingPhotoGrid').addEventListener('click',async e=>{
  const ok=await buildingStorageDelete('photos',buildingKey(id)+'|'+del.dataset.deletePhoto);
  if(chosenBuildingId!==id||chosenBuildingEpoch!==epoch)return;
  setBuildingSaveStatus(ok?'写真を削除しました':'写真を一時的に削除しました');
- await renderBuildingPhotos(id,epoch);
+ if(del.dataset.deletePhoto==='front'&&photoGeometryOverrides.has(buildingKey(id))){
+  await buildingStorageDelete('geometry',buildingKey(id));photoGeometryOverrides.delete(buildingKey(id));
+  await rebuildAfterDimensionsEdit(id,epoch,'元の正面写真を削除したため、写真由来の外形も解除しました。');
+ }else await renderBuildingPhotos(id,epoch);
 });
 $('buildingPhotoInput').addEventListener('change',async e=>{
  const file=e.target.files?.[0];if(!file||!chosenBuildingId)return;
@@ -1432,7 +1624,10 @@ $('buildingPhotoInput').addEventListener('change',async e=>{
  try{const blob=await fileToJpegBlob(file);const ok=await buildingStorageSet('photos',buildingKey(id)+'|'+slot,{blob,name:file.name,updated:Date.now()});
   if(chosenBuildingId!==id||chosenBuildingEpoch!==epoch)return;
   setBuildingSaveStatus(ok?'写真を保存しました（このブラウザのみ）':'写真を一時保存しました。永続保存が利用できない可能性があります。');
-  await renderBuildingPhotos(id,epoch);
+  if(slot==='front'&&photoGeometryOverrides.has(buildingKey(id))){
+   await buildingStorageDelete('geometry',buildingKey(id));photoGeometryOverrides.delete(buildingKey(id));
+   await rebuildAfterDimensionsEdit(id,epoch,'正面写真を差し替えたため、以前の外形を解除しました。再生成してください。');
+  }else await renderBuildingPhotos(id,epoch);
  }catch(error){if(chosenBuildingId===id&&chosenBuildingEpoch===epoch)setBuildingSaveStatus('写真の保存に失敗: '+error.message)}
 });
 
