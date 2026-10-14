@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#101927">
-  <title>街並みスケッチ 3D v0.7.2 | 山形駅西口</title>
+  <title>街並みスケッチ 3D v0.7.3 | 山形駅西口</title>
   <meta name="description" content="OpenStreetMapの建物・道路をブラウザで3D化。山形駅西口から街並みの線画、マンガ調の背景画像やGLBを作成できます。">
   <style>
     :root { color-scheme: dark; --bg:#0b111b; --panel:#111c2b; --panel2:#182638; --line:#2b3c51; --text:#edf3fc; --muted:#9bacbf; --accent:#71e0bc; --cyan:#82c9f7; --orange:#ffc875; }
@@ -74,7 +74,13 @@
     #fpsHurt{position:absolute;inset:0;box-shadow:inset 0 0 140px #e03e3e;opacity:0;transition:opacity .1s}
     #fpsMenu{position:absolute;inset:0;z-index:6;background:#f7f3e7b9;backdrop-filter:blur(5px);display:grid;place-items:center;padding:18px}
     .fps-menu-card{background:repeating-linear-gradient(0deg,#faf7ec 0 31px,#cad7e4 32px,#faf7ec 33px);border:3px solid #194d9b;box-shadow:9px 9px 0 #194d9b2e;color:#194d9b;width:min(590px,100%);padding:27px 30px;transform:rotate(-.4deg)}
-    .fps-menu-card h2{font-size:clamp(27px,6vw,46px);letter-spacing:-.04em;color:#194d9b;display:block;margin:8px 0}.fps-menu-card h2 span{font-size:15px;display:block;letter-spacing:.06em;margin-top:7px}
+    .fps-menu-card h2{font-size:clamp(27px,6vw,46px);letter-spacing:-.04em;color:#194d9b;display:block;margin:8px 0}
+    /* Hand-drawn INKBOUND logo. Only the logo tilts; the searched place stays readable. */
+    .fps-menu-card h2.fps-game-title{margin:20px 0 16px;overflow:visible;line-height:1.12}
+    .fps-menu-card .fps-game-title .fps-logo{font-family:Impact,"Arial Black",ui-sans-serif,sans-serif;font-weight:1000;font-style:italic;font-size:clamp(40px,8vw,74px);letter-spacing:-.065em;display:inline-block;line-height:1.14;position:relative;transform:rotate(-3.2deg) skewX(-7deg);transform-origin:left center;text-shadow:3px 4px 0 #b6c7d9,-1px -1px 0 #194d9b;white-space:nowrap}
+    .fps-menu-card .fps-game-title .fps-logo::after{content:"";position:absolute;left:2%;right:2%;bottom:-4px;height:4px;background:#194d9b;clip-path:polygon(0 30%,100% 0,97% 100%,2% 95%)}
+    .fps-menu-card .fps-game-title .fps-place{font-family:ui-monospace,SFMono-Regular,Consolas,"Noto Sans JP",sans-serif;font-size:clamp(14px,2.5vw,19px);font-weight:800;display:block;letter-spacing:.045em;line-height:1.45;margin-top:14px;overflow-wrap:anywhere;max-height:5.8em;overflow:hidden}
+    @media(max-width:430px){.fps-menu-card{padding:22px 19px}.fps-menu-card .fps-game-title .fps-logo{font-size:clamp(32px,10vw,54px)}}
     .fps-menu-card p{font-size:13px;line-height:1.8;color:#194d9b}.fps-menu-controls{background:#f4efe1;padding:12px;border:1px solid #b5c4d8}.fps-menu-actions{display:flex;gap:8px;flex-wrap:wrap}.fps-menu-actions button{font-weight:700}.fps-menu-card .help{color:#47658c}
     @media(max-width:600px){.fps-help{font-size:9px}.fps-score{gap:8px}.fps-top,.fps-bottom{left:7px;right:7px}.fps-panel{padding:7px;min-width:0}.fps-weapon b{font-size:17px}}
   </style>
@@ -86,7 +92,7 @@
 <div class="app">
   <header>
     <div class="logo">▥</div>
-    <div class="brand"><strong>街並みスケッチ 3D <small style="color:var(--accent);font-size:10px">v0.7.2</small></strong><span>OSM CITY SCOUT · 地図から街とゲームを生成</span></div>
+    <div class="brand"><strong>街並みスケッチ 3D <small style="color:var(--accent);font-size:10px">v0.7.3</small></strong><span>OSM CITY SCOUT · 地図から街とゲームを生成</span></div>
     <div class="header-tools"><span class="pill" id="loadstate">地図データを準備中</span><button class="primary small" id="gameBtn" disabled>▶ INKBOUND FPS</button><button class="small" id="resetPlace">↺ 西口に戻す</button></div>
   </header>
   <main class="viewer" id="viewer">
@@ -104,7 +110,7 @@
       <div id="fpsNotice" role="status" aria-live="polite"></div><div id="fpsReticle">+</div><div id="fpsHit">×</div><div id="fpsHurt"></div>
       <div class="fps-bottom"><div class="fps-help">WASD 移動・マウス 視点 / 左クリック 射撃<br>SPACE ジャンプ / SHIFT ダッシュ / CTRL スライド<br>E 長押し グラップル / R リロード / ESC ポーズ</div><div class="fps-panel fps-weapon"><small>INK RIFLE / AUTO</small><b id="fpsAmmo">30 / ∞</b><small id="fpsAbility">AIR DASH READY</small></div></div>
     </div>
-    <div id="fpsMenu" hidden><div class="fps-menu-card"><div class="fps-caption">FIELD NOTES / REAL CITY</div><h2>INKBOUND <span id="fpsPlaceTitle">山形駅西口</span></h2><p id="fpsIntro">山形駅西口の実際の道路と建物を舞台に、ドローンを撃破してWaveを進めよう。建物の高さ・屋上はOSM情報をもとにした推定を含みます。</p><p class="fps-menu-controls">WASD: 移動　/　SPACE: ジャンプ<br>左クリック: 射撃　/　E: 建物にグラップル<br>SHIFT: ダッシュ　/　R: リロード　/　ESC: ポーズ</p><div class="fps-menu-actions"><button class="primary" id="fpsResume">▶ 戦闘開始</button><button id="fpsExit">地図モードに戻る</button><button id="fpsCopyLink">🔗 FPS専用URLをコピー</button></div><p id="fpsMsg" class="help">PC用キーボード・マウス操作。ゲームは読み込んだ地図範囲内で動作します。</p></div></div>
+    <div id="fpsMenu" hidden><div class="fps-menu-card"><div class="fps-caption">FIELD NOTES / REAL CITY</div><h2 class="fps-game-title"><span class="fps-logo">INKBOUND</span><span class="fps-place" id="fpsPlaceTitle">山形駅西口</span></h2><p id="fpsIntro">山形駅西口の実際の道路と建物を舞台に、ドローンを撃破してWaveを進めよう。建物の高さ・屋上はOSM情報をもとにした推定を含みます。</p><p class="fps-menu-controls">WASD: 移動　/　SPACE: ジャンプ<br>左クリック: 射撃　/　E: 建物にグラップル<br>SHIFT: ダッシュ　/　R: リロード　/　ESC: ポーズ</p><div class="fps-menu-actions"><button class="primary" id="fpsResume">▶ 戦闘開始</button><button id="fpsExit">地図モードに戻る</button><button id="fpsCopyLink">🔗 FPS短縮URLをコピー</button></div><p id="fpsMsg" class="help">PC用キーボード・マウス操作。ゲームは読み込んだ地図範囲内で動作します。</p></div></div>
   </main>
   <aside>
     <section>
@@ -141,10 +147,10 @@
     <section>
       <h2>04 · 書き出し <em>EXPORT</em></h2>
       <div class="chips"><button id="savePng" class="primary">↓ PNG 画像</button><button id="saveGlb" class="primary">↓ GLB 3D</button></div>
-      <div class="chips" style="margin-top:8px"><button id="copyLink">🔗 現在の場所を共有</button><button id="copyGameLink">🎮 FPS専用URL</button><button id="openOsm">↗ OSMで見る</button></div>
+      <div class="chips" style="margin-top:8px"><button id="copyLink">🔗 短縮URLをコピー</button><button id="copyGameLink">🎮 FPS短縮URL</button><button id="openOsm">↗ OSMで見る</button></div>
       <p class="help">PNGは現在の画面の解像度で保存します。GLBは街並みの3D形状を出力し、BlenderやUnityで利用できます。</p>
     </section>
-    <div class="note">v0.7.2：検索した地名を地図取得中・ゲーム開始画面・HUDに反映し、FPS共有URLでも場所を復元。v0.7.1：ドローンの建物壁への衝突判定と迂回・上昇回避、直接FPSを開始する共有URLに対応。v0.7.0：INKBOUND FPS戦闘モードを追加（WASD、射撃、ジャンプ、ダッシュ、グラップリング、ドローンWave制、建物の壁・屋上衝突）。地図表示と切替可能。ゲーム操作はPCブラウザ推奨。v0.6.0までの改善：地上の線路と建物の重なりを判定し、線路部分の建物をくり抜きます。駅舎・上屋は高架状の構造として補完する場合があります。<strong>駅の内部構造・高さは実測ではありません。</strong> 窓台・集合住宅ベランダの立体表現を追加。OSMの単木・並木を取り込み、周辺の公園・歩道沿いの街路樹を推定補完。表示／密度切替と出典数の表示、樹木のインスタンス化で描画負荷を軽減。地図の左右反転を修正。真上表示は北が上・東が右です。道路の見え方を改善し、<strong>車道・歩道・道路輪郭・中央線・横断歩道</strong>を描画します。建物では線画の窓枠、大きな建物の窓・入口・階層線、OSMのbuilding:part・屋根情報を反映します。<strong>窓位置・道路細部・横断歩道の一部は推定</strong>です。現地の実測3Dモデルではありません。</div>
+    <div class="note">v0.7.3：INKBOUNDの傾斜ロゴとGitHub Pagesだけで利用できる短縮URL（#g=）を追加。短縮URLには座標・範囲・ゲーム指定を保存し、地名は表示用に逆引きします。v0.7.2：検索した地名を地図取得中・ゲーム開始画面・HUDに反映し、FPS共有URLでも場所を復元。v0.7.1：ドローンの建物壁への衝突判定と迂回・上昇回避、直接FPSを開始する共有URLに対応。v0.7.0：INKBOUND FPS戦闘モードを追加（WASD、射撃、ジャンプ、ダッシュ、グラップリング、ドローンWave制、建物の壁・屋上衝突）。地図表示と切替可能。ゲーム操作はPCブラウザ推奨。v0.6.0までの改善：地上の線路と建物の重なりを判定し、線路部分の建物をくり抜きます。駅舎・上屋は高架状の構造として補完する場合があります。<strong>駅の内部構造・高さは実測ではありません。</strong> 窓台・集合住宅ベランダの立体表現を追加。OSMの単木・並木を取り込み、周辺の公園・歩道沿いの街路樹を推定補完。表示／密度切替と出典数の表示、樹木のインスタンス化で描画負荷を軽減。地図の左右反転を修正。真上表示は北が上・東が右です。道路の見え方を改善し、<strong>車道・歩道・道路輪郭・中央線・横断歩道</strong>を描画します。建物では線画の窓枠、大きな建物の窓・入口・階層線、OSMのbuilding:part・屋根情報を反映します。<strong>窓位置・道路細部・横断歩道の一部は推定</strong>です。現地の実測3Dモデルではありません。</div>
     <div class="footer">地図データ © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a> (ODbL)<br>3Dエンジン: three.js (MIT)／建物・道路: Overpass API<br>地名検索: Nominatim（公開APIの利用制限に従います）<br>単一HTML。初回の3Dライブラリ取得と地図データ取得にはインターネット接続が必要です。公開APIは混雑・通信制限で失敗する場合があります。</div>
   </aside>
 </div>
@@ -895,6 +901,66 @@ function applyStyle(){const style=state.style,shade=Number($('shade').value)/100
  $('shadeValue').textContent=Math.round(shade*100)+'%';
  for(const btn of document.querySelectorAll('#styles [data-style]'))btn.classList.toggle('active',btn.dataset.style===style);
 }
+const SHORT_ALPHABET='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_';
+const SHORT_RADII=[180,280,450,650];
+let shortHashOnPage=false;
+let shortInitialGame=false;
+function encodeShortLocation(lat,lon,radius,inkbound=false){
+ if(!Number.isFinite(lat)||lat < -90||lat>90||!Number.isFinite(lon)||lon < -180||lon>180)throw new Error('無効な緯度経度');
+ const latCode=Math.round((lat+90)*1e5),lonCode=Math.round((lon+180)*1e5);
+ const idx=Math.max(0,SHORT_RADII.indexOf(Number(radius)));
+ let bits=(BigInt(latCode)<<29n)|(BigInt(lonCode)<<3n)|(BigInt(idx)<<1n)|BigInt(inkbound?1:0);
+ let encoded='';for(let k=0;k<9;k++){encoded=SHORT_ALPHABET[Number(bits&63n)]+encoded;bits>>=6n}
+ return '1'+encoded;
+}
+function decodeShortLocation(code){
+ if(typeof code!=='string'||!/^1[0-9A-Za-z_-]{9}$/.test(code))return null;
+ let bits=0n;for(const c of code.slice(1)){const digit=SHORT_ALPHABET.indexOf(c);if(digit<0)return null;bits=(bits<<6n)|BigInt(digit)}
+ const latCode=Number(bits>>29n),lonCode=Number((bits>>3n)&((1n<<26n)-1n));
+ if(latCode>18000000||lonCode>36000000)return null;
+ const radius=SHORT_RADII[Number((bits>>1n)&3n)];
+ return {lat:latCode/1e5-90,lon:lonCode/1e5-180,radius,inkbound:Boolean(bits&1n)};
+}
+function shortNameCacheKey(lat,lon){return `cityscout:shortname:${lat.toFixed(5)},${lon.toFixed(5)}`}
+function makeShortUrl(inkbound=false){
+ const url=new URL(window.location.href);
+ url.searchParams.delete('mode');
+ url.hash='g='+encodeShortLocation(state.lat,state.lon,state.radius,inkbound);
+ // Preserve the exact searched label in this browser; another device resolves by coordinates.
+ if(state.name&&state.name!=='指定した座標'){
+  const lat=Math.round(state.lat*1e5)/1e5,lon=Math.round(state.lon*1e5)/1e5;
+  try{localStorage.setItem(shortNameCacheKey(lat,lon),state.name)}catch{}
+ }
+ return url.toString();
+}
+function wantsGameMode(){
+ if(shortHashOnPage)return shortInitialGame;
+ return new URLSearchParams(location.search).get('mode')==='inkbound';
+}
+async function resolveShortPlaceName(){
+ if(!shortHashOnPage)return;
+ const currentLat=state.lat,currentLon=state.lon;
+ if(Math.abs(currentLat-START.lat)<.00012&&Math.abs(currentLon-START.lon)<.00012){state.name=START.name;updatePlaceUI();return}
+ const cacheKey=shortNameCacheKey(currentLat,currentLon);
+ try{
+  const cached=localStorage.getItem(cacheKey);
+  if(cached){state.name=cached;updatePlaceUI();return}
+ }catch{}
+ try{
+  // Public Nominatim reverse geocoding is used only once when a short URL is opened.
+  const ctrl=new AbortController(),timeout=setTimeout(()=>ctrl.abort(),9000);
+  let data;
+  try{
+   const params=new URLSearchParams({format:'json',lat:String(currentLat),lon:String(currentLon),zoom:'17','accept-language':'ja'});
+   const response=await fetch('https://nominatim.openstreetmap.org/reverse?'+params,{signal:ctrl.signal});
+   if(!response.ok)throw new Error('Reverse geocoding HTTP '+response.status);
+   data=await response.json();
+  }finally{clearTimeout(timeout)}
+  if(Math.abs(state.lat-currentLat)>1e-7||Math.abs(state.lon-currentLon)>1e-7||!shortHashOnPage)return;
+  const label=String(data.name||data.display_name||'').split(',').slice(0,2).join(', ').trim();
+  if(label){state.name=label.slice(0,90);try{localStorage.setItem(cacheKey,state.name)}catch{}updatePlaceUI()}
+ }catch(e){console.warn('短縮URLの地名の逆引きに失敗しました',e)}
+}
 function mapLink(){const gap=0.0045;const b=[state.lon-gap,state.lat-gap*.7,state.lon+gap,state.lat+gap*.7].join('%2C');return `https://www.openstreetmap.org/export/embed.html?bbox=${b}&layer=mapnik&marker=${state.lat}%2C${state.lon}`}
 function placeName(){return String(state.name||'指定した座標').trim()||'指定した座標'}
 function syncPlaceLabels(){
@@ -902,17 +968,21 @@ function syncPlaceLabels(){
  $('fpsPlaceTitle').textContent=name;
  $('fpsHudPlace').textContent=`INKBOUND / ${name}`;
  $('fpsIntro').textContent=`${name}の街を戦場に、追跡ドローンと戦おう。建物の高さ・屋上はOSM情報をもとにした推定を含みます。`;
- document.title=`${game.active?'INKBOUND':'街並みスケッチ 3D v0.7.2'} | ${name}`;
+ document.title=`${game.active?'INKBOUND':'街並みスケッチ 3D v0.7.3'} | ${name}`;
 }
 function updatePlaceUI(){
  $('lat').value=state.lat;$('lon').value=state.lon;$('radius').value=state.radius;
  $('placetag').replaceChildren(document.createTextNode(placeName()));
  const small=document.createElement('small');small.textContent=`北緯 ${state.lat.toFixed(7)} · 東経 ${state.lon.toFixed(7)}`;$('placetag').append(small);
- if(placeName()!=='指定した座標')$('searchText').value=placeName();
+ $('searchText').value=placeName()==='指定した座標'?`${state.lat.toFixed(5)}, ${state.lon.toFixed(5)}`:placeName();
  $('minimap').title=`${placeName()}周辺のOpenStreetMap地図`;
  $('minimap').src=mapLink();
  syncPlaceLabels();
- const hash=`ll=${state.lat.toFixed(7)},${state.lon.toFixed(7)}&s=${state.radius}&n=${encodeURIComponent(placeName())}`;history.replaceState(null,'','#'+hash);
+ if(shortHashOnPage){
+  const url=new URL(location.href);url.searchParams.delete('mode');url.hash='g='+encodeShortLocation(state.lat,state.lon,state.radius,shortInitialGame);history.replaceState(null,'',url.toString());
+ }else{
+  const hash=`ll=${state.lat.toFixed(7)},${state.lon.toFixed(7)}&s=${state.radius}&n=${encodeURIComponent(placeName())}`;history.replaceState(null,'','#'+hash);
+ }
 }
 function safeCacheRead(key){try{const s=localStorage.getItem(key);if(!s)return null;const x=JSON.parse(s);if(Date.now()-x.time>24*3600*1000)return null;return x.elements}catch{return null}}
 function safeCacheWrite(key,elements){try{localStorage.setItem(key,JSON.stringify({time:Date.now(),elements}));}catch{/* Storage unavailable */}}
@@ -994,7 +1064,7 @@ async function loadCity(explicitPlaceName){
   if(elements.length===0)throw new Error('この範囲には地図データがありません');
   if(fromCache)$('networkInfo').textContent=`キャッシュから読み込み：${elements.length.toLocaleString()}件`;
   buildWorld(elements);setStatus('読み込み完了');toast('街並みの3D生成が完了しました');
-  if(new URLSearchParams(location.search).get('mode')==='inkbound'&&!game.active)gameEnter();
+  if(wantsGameMode()&&!game.active)gameEnter();
  } catch(e){if(id!==activeLoad)return;setStatus('取得エラー');toast('読み込みに失敗しました。詳しい内容は「取得先」の下に表示しています。',8500);$('networkInfo').textContent='エラー：'+e.message+'。接続先を変更するか、範囲を180mにして再試行してください。';console.error(e);
  } finally{if(id===activeLoad)setBusy(false)}
 }
@@ -1076,16 +1146,17 @@ function gameReset(){clearGameObjects();game.player.copy(findSafeSpawn());game.v
 }
 function clearKeys(){game.keys=Object.create(null);game.fire=false;game.grapple=null;rope.visible=false}
 function gameAim(){camera.position.copy(game.player).add(new THREE.Vector3(0,game.eye,0));camera.rotation.order='YXZ';camera.rotation.set(game.pitch,game.yaw,0,'YXZ');camera.updateMatrixWorld(true)}
-function gameModeUrl(){
- const url=new URL(window.location.href);url.searchParams.set('mode','inkbound');return url.toString();
-}
+function gameModeUrl(){return makeShortUrl(true)}
 function setGameUrlMode(enabled){
- try{const url=new URL(window.location.href);if(enabled)url.searchParams.set('mode','inkbound');else url.searchParams.delete('mode');history.replaceState(null,'',url.toString())}catch(e){console.warn('URL更新不可',e)}
+ try{
+  if(shortHashOnPage){shortInitialGame=enabled;history.replaceState(null,'',makeShortUrl(enabled));return}
+  const url=new URL(window.location.href);if(enabled)url.searchParams.set('mode','inkbound');else url.searchParams.delete('mode');history.replaceState(null,'',url.toString())
+ }catch(e){console.warn('URL更新不可',e)}
 }
 async function copyGameModeUrl(){
  const link=gameModeUrl();
- try{await navigator.clipboard.writeText(link);toast('FPS専用URLをコピーしました。開くとゲーム開始画面を表示します。')}
- catch{window.prompt('FPS専用URL（コピーしてください）',link)}
+ try{await navigator.clipboard.writeText(link);toast('FPS短縮URLをコピーしました。開くとゲーム開始画面を表示します。')}
+ catch{window.prompt('FPS短縮URL（コピーしてください）',link)}
 }
 function gameEnter(){if(!state.loaded){toast('先に地図を読み込んでください');return}
  if(game.active)return;
@@ -1267,17 +1338,27 @@ $('styles').addEventListener('click',e=>{const btn=e.target.closest('[data-style
 for(const id of ['shade','showWindows','showTrees','showRails','sky'])$(id).addEventListener('input',applyStyle);
 $('lens').addEventListener('change',e=>setLens(e.target.value));$('savePng').addEventListener('click',pngSave);$('saveGlb').addEventListener('click',glbSave);
 $('openOsm').addEventListener('click',()=>window.open(`https://www.openstreetmap.org/?mlat=${state.lat}&mlon=${state.lon}#map=17/${state.lat}/${state.lon}`,'_blank','noopener,noreferrer'));
-$('copyLink').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(location.href);toast('共有リンクをコピーしました')}catch{toast('この環境ではコピーできません。アドレスバーのURLをご利用ください')}});
+$('copyLink').addEventListener('click',async()=>{
+ const link=makeShortUrl(game.active);
+ try{await navigator.clipboard.writeText(link);toast('短縮URLをコピーしました（地名は開いたときに取得します）')}
+ catch{window.prompt('短縮URL（コピーしてください）',link)}
+});
 let hash;try{hash=new URLSearchParams(location.hash.replace(/^#/,''))}catch{}
-if(hash?.has('ll')){
+const decodedShort=decodeShortLocation(hash?.get('g'));
+if(decodedShort){
+ state.lat=decodedShort.lat;state.lon=decodedShort.lon;state.radius=decodedShort.radius;
+ state.name='指定した座標';shortHashOnPage=true;shortInitialGame=decodedShort.inkbound;
+}else if(hash?.has('ll')){
  const coords=(hash.get('ll')||'').split(',').map(Number);
  if(coords.length===2&&coords.every(Number.isFinite)&&coords[0]>=-90&&coords[0]<=90&&coords[1]>=-180&&coords[1]<=180){
   state.lat=coords[0];state.lon=coords[1];state.name=hash.get('n')||'指定した座標';
  }
  const sharedRadius=Number(hash.get('s'));
- if([180,280,450,650].includes(sharedRadius))state.radius=sharedRadius;
+ if(SHORT_RADII.includes(sharedRadius))state.radius=sharedRadius;
 }
-setLens($('lens').value);updatePlaceUI();loadCity();
+setLens($('lens').value);updatePlaceUI();
+if(decodedShort)resolveShortPlaceName();
+loadCity();
 </script>
 </body>
 </html>
